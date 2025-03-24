@@ -40,12 +40,18 @@ function Tables() {
   return (
     <>
       <div className="content">
+      <Row>
+          <Col md="12">
+            <Card>
+              <CardHeader>
+                <CardTitle tag="h4">Cadastro de Atletas</CardTitle>
+              </CardHeader>
+            </Card>
+          </Col>
+        </Row>
         <Row>
           <Col md="12">
             <Card className="card-user">
-              <CardHeader>
-                <CardTitle tag="h5">Cadastro de Atletas</CardTitle>
-              </CardHeader>
               <CardBody>
                 <Form>
                   <Row>
@@ -121,12 +127,22 @@ function Tables() {
                             </Input>
                       </FormGroup>
                     </Col>
-                    <Col className="pl-1" md="6">
+                    <Col className="pl-1" md="3">
+                      <FormGroup>
+                        <label>CPF</label>
+                        <Input
+                          defaultValue="CPF"
+                          placeholder="CPF"
+                          type="text"
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col className="pl-1" md="3">
                       <FormGroup>
                         <label>RG</label>
                         <Input
                           defaultValue="RG"
-                          placeholder="Last Name"
+                          placeholder="RG"
                           type="text"
                         />
                       </FormGroup>
@@ -170,9 +186,17 @@ function Tables() {
                     </Col>
                   </Row>
                   <Row>
-                    <Col md="12">
+                    <Col md="6">
                       <FormGroup>
-                        <label>Nome e Telefone em caso de Emergência</label>
+                        <label>Nome do Contato de Emergência</label>
+                        <Input
+                            type="Text"
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md="6">
+                      <FormGroup>
+                        <label>Telefone do Contato de Emergência</label>
                         <Input
                             type="Text"
                         />

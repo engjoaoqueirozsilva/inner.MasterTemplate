@@ -20,9 +20,8 @@
 
 */
 import React from "react";
-import { useState , useEffect} from "react";
+import { useState } from "react";
 import NotificationAlert from "react-notification-alert";
-import axios from "axios";
 
 // reactstrap components
 import {
@@ -35,10 +34,11 @@ import {
   Form,
   FormGroup,
   Input,
-  Button
+  Button,
+  Label
 } from "reactstrap";
 
-function Modalidade() {
+function Categoria() {
 
     const notificationAlert = React.useRef();
     const notify = (place, color) => {
@@ -68,7 +68,7 @@ function Modalidade() {
         message: (
           <div>
             <div>
-                <b> Erro </b> 
+                <b>Ó o auÊ aí hein... camabada de cuzão</b> bando de cu de pombo do caraio
             </div>
           </div>
         ),
@@ -80,16 +80,9 @@ function Modalidade() {
     };
 
 
-    const [modalidades, setModalidades ] = useState({});
-
-    useEffect(() => {
-      axios.get('https://localhost:44311/api/services/app/ModalidadeService/GetAll').then(resp => {
-          setModalidades(resp.data.result)
-      })
-      .catch(err => {
-        notify("tr", 3)
-      });    
-  },[modalidades]);
+    const [modalidadeNome, setModalidadeNome ] = useState('');
+    const [modalidadeResp, setModalidadeResp ] = useState('');
+    const [modalidadeObs, setModalidadeObs ] = useState('');
 
    
 
@@ -102,7 +95,7 @@ function Modalidade() {
           <Col md="12">
             <Card>
               <CardHeader>
-                <CardTitle tag="h4">Cadastro de Modalidade</CardTitle>
+                <CardTitle tag="h4">Cadastro de Categoria</CardTitle>
               </CardHeader>
             </Card>
           </Col>
@@ -115,11 +108,38 @@ function Modalidade() {
                   <Row>
                     <Col className="pr-1" md="12">
                       <FormGroup>
-                        <label>Nome da Modalidade</label>
+                        <label>Nome da Categoria</label>
                         <Input
-                          placeholder="Nome da Modalidade"
+                          placeholder="Nome da Categoria"
                           type="text"
                         />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col className="pr-1" md="12">
+                    <FormGroup>
+                      <Label for="exampleSelect1">Modalidade</Label>
+                            <Input type="select" name="select" id="exampleSelect1" onChange={() => setModalidade(this.value)}>
+                            <option>Selecione ...</option>
+                            <option value="1">VolleyBall Quadra</option>
+                            <option value="2">VolleyBall Praia</option>
+                            <option value="3">FuteVolley</option>
+                            <option value="4">Futebol Campo(Soccer)</option>
+                            <option value="5">Futebol Salão(Futsal)</option>
+                            <option value="6">Futebol Americano(Football)</option>
+                            <option value="17">Futebol Americano Sem Contato(Flag Football)</option>
+                            <option value="7">Futebol de 7(Society/Sintético)</option>
+                            <option value="8">Basquete (NBA)</option>
+                            <option value="9">Basquete (FIBA)</option>
+                            <option value="10">Basquete de 3(Street)</option>
+                            <option value="11">Musculação</option>
+                            <option value="12">Funcional</option>
+                            <option value="13">Karate</option>
+                            <option value="14">Taekwondo</option>
+                            <option value="15">Jiu-Jitsu</option>
+                            <option value="16">Volleibinhas de Vila</option>
+                            </Input>
                       </FormGroup>
                     </Col>
                   </Row>
@@ -159,7 +179,7 @@ function Modalidade() {
                       <Button
                         className="btn-round"
                         color="primary"
-                        
+                        type="submit"
 
                         onClick={() => notify("tr", 3)}
                       >
@@ -178,4 +198,4 @@ function Modalidade() {
   );
 }
 
-export default Modalidade;
+export default Categoria;

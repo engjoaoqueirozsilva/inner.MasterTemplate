@@ -19,9 +19,10 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import React  from "react";
 import NotificationAlert from "react-notification-alert";
+import axios from "axios";
 
 // reactstrap components
 import {
@@ -78,7 +79,30 @@ function Treino() {
       notificationAlert.current.notificationAlert(options);
     };
 
-    const [modalidade, setModalidade] = useState("")
+    const [modalidades, setModalidades] = useState(null)
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
+   
+      useEffect(() => {
+        const fetchData = async () => {
+          if (isDataLoaded) return; 
+
+          axios.get('https://localhost:44311/api/services/app/ModalidadeService/GetAll').then(resp => {
+            if(resp.data.result!== null){
+              setIsDataLoaded(true)
+              setModalidades(resp.data.result)
+            }
+        })
+        .catch(err => {
+          notify("tr", 3)
+        }); 
+      }
+        
+      fetchData();
+           
+}, [isDataLoaded]);
+    
+console.log(modalidades);
+
 
   return (
     <>
@@ -96,9 +120,6 @@ function Treino() {
         <Row>
           <Col md="12">
             <Card>
-              <CardHeader>
-                <CardTitle tag="h4">Treino</CardTitle>
-              </CardHeader>
               <CardBody>
               <Form>
                   <Row>
@@ -116,24 +137,13 @@ function Treino() {
                       <Label for="exampleSelect1">Modalidade</Label>
                             <Input type="select" name="select" id="exampleSelect1" onChange={() => setModalidade(this.value)}>
                             <option>Selecione ...</option>
-                            <option value="1">VolleyBall Quadra</option>
-                            <option value="2">VolleyBall Praia</option>
-                            <option value="3">FuteVolley</option>
-                            <option value="4">Futebol Campo(Soccer)</option>
-                            <option value="5">Futebol Salão(Futsal)</option>
-                            <option value="6">Futebol Americano(Football)</option>
-                            <option value="17">Futebol Americano Sem Contato(Flag Football)</option>
-                            <option value="7">Futebol de 7(Society/Sintético)</option>
-                            <option value="8">Basquete (NBA)</option>
-                            <option value="9">Basquete (FIBA)</option>
-                            <option value="10">Basquete de 3(Street)</option>
-                            <option value="11">Musculação</option>
-                            <option value="12">Funcional</option>
-                            <option value="13">Karate</option>
-                            <option value="14">Taekwondo</option>
-                            <option value="15">Jiu-Jitsu</option>
-                            <option value="16">Volleibinhas de Vila</option>
-                            </Input>
+                            
+                            {
+                              modalidades?.map((item, index) => {     
+                                return <option value={item.id}>{item.nomeModalidade}</option>
+                              })
+                            }
+                              </Input>
                       </FormGroup>
                     </Col>
                   </Row>

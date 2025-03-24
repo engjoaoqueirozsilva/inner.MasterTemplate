@@ -25,13 +25,12 @@ import Cadastro from "views/Cadastro.js";
 //import TableList from "views/Tables.js";
 import Atleta from "views/DashAtleta.js";
 import Modalidade from "views/Modalidade.js";
+import Categoria from "views/Categorias.js";
 import Treino from "views/Treino.js";
-import Upload from "views/Upload";
-import Arquivos from "views/Arquivos.js";
-import Photo from "views/Photos.js";
+
 
 var routes = [
-   {
+   /*{
     path: "/Upload",
     name: "Uploads",
     icon: "nc-icon nc-cloud-upload-94",
@@ -51,17 +50,23 @@ var routes = [
     icon: "nc-icon nc-cloud-upload-94",
     component: Photo,
     layout: "/admin"
-  },
-  
+  },*/
   {
-    path: "/Modalidade",
-    name: "Modalidade",
-    icon: "nc-icon nc-trophy",
-    component: Modalidade,
+    path: "/Dashboard",
+    name: "Performance",
+    icon: "nc-icon nc-sound-wave",
+    component: Atleta,
     layout: "/admin"
   
   },
-   
+  {
+    path: "/Dashboard",
+    name: "Gráfico de Risco",
+    icon: "nc-icon nc-sound-wave",
+    component: Atleta,
+    layout: "/admin"
+  
+  },
   {
     path: "/Atletas",
     name: "Performance",
@@ -70,14 +75,27 @@ var routes = [
     layout: "/admin"
   
   },
-   
+  {
+    path: "/Modalidade",
+    name: "Modalidade",
+    icon: "nc-icon nc-trophy",
+    component: Modalidade,
+    layout: "/admin"
+  
+  },
+  {
+    path: "/Categoria",
+    name: "Categorias",
+    icon: "nc-icon nc-bullet-list-67",
+    component: Categoria,
+    layout: "/admin"
+  },
   {
     path: "/Treino",
     name: "Treino",
     icon: "nc-icon nc-spaceship",
     component: Treino,
     layout: "/admin"
-  
   },
   {
     path: "/Cadastro",
@@ -87,13 +105,6 @@ var routes = [
     layout: "/admin"
   }/*,
   {
-    path: "/dashboard",
-    name: "Dashboard",
-    icon: "nc-icon nc-bank",
-    component: Dashboard,
-    layout: "/admin"
-  },*/
-  ,{
     path: "/icons",
     name: "Icons",
     icon: "nc-icon nc-diamond",
@@ -106,7 +117,7 @@ var routes = [
     icon: "nc-icon nc-bell-55",
     component: Notifications,
     layout: "/admin"
-  }/*,
+  },
   {
     path: "/user-page",
     name: "User Profile",
