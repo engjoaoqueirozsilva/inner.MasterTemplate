@@ -28,7 +28,7 @@ COPY --from=builder /app/build /usr/share/caddy
 
 # Copia o arquivo de configuração do Caddy.
 # Este arquivo é crucial para o roteamento de Single Page Applications (SPAs).
-COPY Caddyfile /etc/caddy/Caddyfile
+COPY Caddyfile /etc/caddy/caddyfile
 
 # Expõe as portas padrão HTTP e HTTPS.
 EXPOSE 80 443 
