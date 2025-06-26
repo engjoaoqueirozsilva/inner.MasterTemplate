@@ -13,7 +13,7 @@ COPY . .
 
 # Instala as dependências usando yarn
 # Se COPY . . for antes, yarn install vai rodar com todos os arquivos presentes
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Executa o comando de build do seu package.json.
 RUN yarn run build
