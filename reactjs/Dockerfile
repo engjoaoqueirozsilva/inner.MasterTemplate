@@ -31,7 +31,8 @@ COPY --from=builder /app/build /usr/share/caddy
 COPY Caddyfile /etc/caddy/Caddyfile
 
 # Expõe as portas padrão HTTP e HTTPS.
-EXPOSE 80 443 # O Coolify vai rotear para a porta 80 do seu container.
+EXPOSE 80 443 
+# O Coolify vai rotear para a porta 80 do seu container.
 
 # Comando para iniciar o servidor Caddy em produção.
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
