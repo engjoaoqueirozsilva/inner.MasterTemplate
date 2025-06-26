@@ -12,8 +12,9 @@ RUN npm run build
 # Não precisamos de um servidor web dedicado aqui.
 # Apenas precisamos de um container leve que exponha os arquivos build.
 # Uma imagem Alpine básica é suficiente.
-FROM alpine/git:latest # Ou FROM scratch, se quiser o mínimo absoluto e lidar com dependências de runtime.
-                        # Alpine/git é útil para ter algumas ferramentas básicas se precisar debugar.
+FROM alpine/git:latest
+# Ou FROM scratch, se quiser o mínimo absoluto e lidar com dependências de runtime.
+# Alpine/git é útil para ter algumas ferramentas básicas se precisar debugar.
 
 # Copia os arquivos compilados da pasta 'build' do estágio 'builder'
 # para um diretório que o Coolify pode montar e servir.
