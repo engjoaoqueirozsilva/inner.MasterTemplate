@@ -58,7 +58,7 @@ var routes = [
     component: Atleta,
     layout: "/admin"
   
-  },
+  },/*
   {
     path: "/Dashboard",
     name: "Gráfico de Risco",
@@ -74,7 +74,7 @@ var routes = [
     component: Atleta,
     layout: "/admin"
   
-  },
+  },*/
   {
     path: "/Modalidade",
     name: "Modalidade",
