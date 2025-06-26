@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # Instala as dependências do projeto usando yarn.
-RUN yarn install --frozen-lockfile
+RUN yarn install 
 
 # Executa o comando de build do seu package.json.
 # O script "build" do seu package.json é "react-app-rewired build",
@@ -19,7 +19,8 @@ RUN yarn run build
 # --- Estágio de Produção ---
 # Usa uma imagem leve de servidor web (Caddy é excelente para SPAs).
 # Alternativa: FROM nginx:alpine
-FROM caddy:2-alpine # <--- Use Caddy ou Nginx aqui
+FROM caddy:2-alpine 
+# <--- Use Caddy ou Nginx aqui
 
 # Copia os arquivos compilados (da pasta 'build' do estágio 'builder')
 # para o diretório de serviço do Caddy.
