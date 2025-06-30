@@ -1,31 +1,5 @@
-
-/* eslint-disable no-undef */
-/*!
-
-=========================================================
-* Paper Dashboard React - v1.3.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-* Licensed under MIT (https://github.com/creativetimofficial/paper-dashboard-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Line, Pie } from "react-chartjs-2";
-import {
-  dashboardEmailStatisticsChart,
-  dashboardNASDAQChart
-} from "variables/charts.js";
-
-// reactstrap components
 import {
   Card,
   CardHeader,
@@ -33,189 +7,309 @@ import {
   CardTitle,
   Table,
   Row,
-  CardFooter,
   Col,
-  Button
+  Button,
+  Input
 } from "reactstrap";
 
+import NivelBotaoSet from "./NivelBotaoSet";
+
 function DashAtleta() {
+  const fundamentos = ["Saque", "Ataque", "Defesa", "Passe", "Levantamento", "Bloqueio"];
+  const cores = ["warning", "primary", "danger", "success", "default", "warning"];
+  const atletas = ["Manuella Penharbel", "Murillo Penharbel"];
+  const niveis = ["A", "B", "C", "D", "E", "F"];
 
+  const [avaliacoes, setAvaliacoes] = useState({});
+  const [filtroAtleta, setFiltroAtleta] = useState("Todos");
+  const [filtroFundamento, setFiltroFundamento] = useState("Todos");
 
-   
+  useEffect(() => {
+    const salvo = localStorage.getItem("avaliacoes");
+    if (salvo) setAvaliacoes(JSON.parse(salvo));
+  }, []);
 
+  useEffect(() => {
+    localStorage.setItem("avaliacoes", JSON.stringify(avaliacoes));
+  }, [avaliacoes]);
 
-    const fundamentos = [
-        "Saque",
-        "Ataque",
-        "Defesa",
-        "Passe",
-        "Levantamento",
-        "Bloqueio"
-    ]
+  const registrarJogada = (atleta, fundamento, nivel) => {
+    setAvaliacoes(prev => {
+      const jogadasPrevias = prev[atleta]?.[fundamento] || [];
+      return {
+        ...prev,
+        [atleta]: {
+          ...(prev[atleta] || {}),
+          [fundamento]: [...jogadasPrevias, nivel]
+        }
+      };
+    });
+  };
 
-    const cores = [
-        "warning",
-        "primary",
-        "danger",
-        "success",
-        "default",
-        "warning"
-    ]
+  const desfazerUltima = (atleta, fundamento) => {
+    setAvaliacoes(prev => {
+      const jogadas = prev[atleta]?.[fundamento] || [];
+      const novasJogadas = jogadas.slice(0, -1);
+      return {
+        ...prev,
+        [atleta]: {
+          ...prev[atleta],
+          [fundamento]: novasJogadas
+        }
+      };
+    });
+  };
 
-    const atletas = [
-        "Manuella Penharbel",
-        "Murillo Penharbel"
-    ]
+  const limparFundamento = (atleta, fundamento) => {
+    setAvaliacoes(prev => {
+      return {
+        ...prev,
+        [atleta]: {
+          ...prev[atleta],
+          [fundamento]: []
+        }
+      };
+    });
+  };
 
-    let HandleAdd = (atleta, fundamento) => {
-           alert("Adicionando "+ fundamento+" para "+ atleta);
+  const enviarParaAPI = async () => {
+    try {
+      const response = await fetch("/api/avaliacoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ treinoId: 123, avaliacoes })
+      });
+
+      if (response.ok) {
+        alert("Avaliação enviada com sucesso!");
+        console.log("Dados enviados:", avaliacoes);
+        setAvaliacoes({});
+        localStorage.removeItem("avaliacoes");
+      } else {
+        alert("Erro ao enviar os dados.");
+      }
+    } catch (err) {
+      console.error("Erro ao enviar para a API:", err);
+      alert("Falha na comunicação com o servidor.");
     }
+  };
+
+  const totaisFundamento = fundamentos.map(fundamento => {
+    if (filtroFundamento !== "Todos" && filtroFundamento !== fundamento) return 0;
+    return atletas.reduce((acc, atleta) => {
+      if (filtroAtleta !== "Todos" && filtroAtleta !== atleta) return acc;
+      return acc + (avaliacoes[atleta]?.[fundamento]?.length || 0);
+    }, 0);
+  });
+
+  const contagemPorNivel = niveis.map(nivel => {
+    let total = 0;
+    for (const atleta in avaliacoes) {
+      if (filtroAtleta !== "Todos" && filtroAtleta !== atleta) continue;
+      for (const fundamento in avaliacoes[atleta]) {
+        if (filtroFundamento !== "Todos" && filtroFundamento !== fundamento) continue;
+        total += avaliacoes[atleta][fundamento].filter(n => n === nivel).length;
+      }
+    }
+    return total;
+  });
 
   return (
-    <>
-      <div className="content">
-        <Row>
-          <Col md="12">
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h4">Análise de Performance em Treino</CardTitle>
-              </CardHeader>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col md="12">
-            <Card>
-              <CardBody>
-                <Table responsive>
-                  <thead className="text-primary">
-                    <tr>
+    <div className="content">
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardHeader className="d-flex justify-content-between align-items-center">
+              <CardTitle tag="h4">Análise de Performance em Treino</CardTitle>
+              <Button color="success" onClick={enviarParaAPI}>
+                Finalizar Avaliação
+              </Button>
+            </CardHeader>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-3 px-3">
+        <Col md="3">
+          <label>Filtrar por Atleta:</label>
+          <Input
+            type="select"
+            value={filtroAtleta}
+            onChange={(e) => setFiltroAtleta(e.target.value)}
+          >
+            <option>Todos</option>
+            {atletas.map((a, i) => (
+              <option key={i}>{a}</option>
+            ))}
+          </Input>
+        </Col>
+        <Col md="3">
+          <label>Filtrar por Fundamento:</label>
+          <Input
+            type="select"
+            value={filtroFundamento}
+            onChange={(e) => setFiltroFundamento(e.target.value)}
+          >
+            <option>Todos</option>
+            {fundamentos.map((f, i) => (
+              <option key={i}>{f}</option>
+            ))}
+          </Input>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardBody>
+              <Table responsive>
+                <thead className="text-primary">
+                  <tr>
                     <th>Nome Atleta</th>
-                        {fundamentos.map( (fundamento) => 
-                             <th>{fundamento}</th>
-                        )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                       {
-                        atletas.map((atleta, index) => 
-                                <tr>
-                                    <td>{atleta}</td>
-                                    {fundamentos.map( (fundamento, idx) => 
-                                       
+                    {fundamentos
+                      .filter(f => filtroFundamento === "Todos" || filtroFundamento === f)
+                      .map((fundamento, idx) => (
+                        <th key={idx}>{fundamento}</th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {atletas
+                    .filter(a => filtroAtleta === "Todos" || filtroAtleta === a)
+                    .map((atleta, index) => (
+                      <tr key={index}>
+                        <td>{atleta}</td>
+                        {fundamentos
+                          .filter(f => filtroFundamento === "Todos" || filtroFundamento === f)
+                          .map((fundamento, idx) => {
+                            const total = avaliacoes[atleta]?.[fundamento]?.length || 0;
 
-                                        <td>
-                                            <Row>
-                                                <Button                               
-                                                    style={({ marginRight: "5px" })}
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                A
-                                                </Button>
-                                                <Button                             
-                                                    style={({ marginRight: "5px" , opacity: "0.8" })}  
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                    B
-                                                </Button>
-                                                <Button                               
-                                                    style={({ marginRight: "5px", opacity: "0.7" })}
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                    C
-                                                </Button>
-                                            </Row>
-                                        <br/>
-                                            <Row>
-                                                <Button                               
-                                                    style={({ marginRight: "5px", opacity: "0.6" })}
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                    D
-                                                </Button>
-                                                <Button                               
-                                                    style={({ marginRight: "5px", opacity: "0.5" })}
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                    E
-                                                </Button>
-                                                <Button                               
-                                                    style={({ marginRight: "5px", opacity: "0.3" })}
-                                                    color={cores[idx]}
-                                                    onClick={() => HandleAdd(atleta, fundamento)}
-                                                >
-                                                    F
-                                                </Button>
-                                            </Row>
-                                        </td>
-                                    )}
-                                </tr>
-                        )
-                       }     
-                  </tbody>
-                </Table>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col md="4">
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h5">Análise de Treino</CardTitle>
-                <p className="card-category">Ultimos 15 Treinos</p>
-              </CardHeader>
-              <CardBody style={{ height: "266px" }}>
-                <Pie
-                  data={dashboardEmailStatisticsChart.data}
-                  options={dashboardEmailStatisticsChart.options}
-                />
-              </CardBody>
-              <CardFooter>
-                <div className="legend">
-                  <i className="fa fa-circle text-primary" /> Ataque{" "}
-                  <i className="fa fa-circle text-warning" /> Defesa{" "}
-                  <i className="fa fa-circle text-danger" /> Bloqueio{" "}
-                  <i className="fa fa-circle text-gray" /> Saque
-                </div>
-                <hr />
+                            return (
+                              <td key={`${index}-${idx}`}>
+                                <NivelBotaoSet
+                                  atleta={atleta}
+                                  fundamento={fundamento}
+                                  cor={cores[idx]}
+                                  onClick={registrarJogada}
+                                />
+                                <div className="d-flex justify-content-between align-items-center mt-1 gap-1">
+                                  <small className="text-muted">Total: {total}</small>
+                                  {total > 0 && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        color="danger"
+                                        outline
+                                        onClick={() => desfazerUltima(atleta, fundamento)}
+                                      >
+                                        Desfazer
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        color="secondary"
+                                        outline
+                                        onClick={() => limparFundamento(atleta, fundamento)}
+                                      >
+                                        Limpar
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-              </CardFooter>
-            </Card>
-          </Col>
-          <Col md="8">
-            <Card className="card-chart">
-              <CardHeader>
-                <CardTitle tag="h5">Evolução Mensal</CardTitle>
-                <p className="card-category">Fundamentos Certos no Último Mês</p>
-              </CardHeader>
-              <CardBody>
-                <Line
-                  data={dashboardNASDAQChart.data}
-                  options={dashboardNASDAQChart.options}
-                  width={400}
-                  height={100}
-                />
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h5">Jogadas por Fundamento</CardTitle>
+              <p className="card-category">Distribuição Total Registrada</p>
+            </CardHeader>
+            <CardBody style={{ height: "300px", position: "relative" }}>
+              <Pie
+                data={{
+                  labels: fundamentos,
+                  datasets: [
+                    {
+                      data: totaisFundamento,
+                      backgroundColor: [
+                        "#4e73df",
+                        "#1cc88a",
+                        "#36b9cc",
+                        "#f6c23e",
+                        "#e74a3b",
+                        "#858796"
+                      ]
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: "bottom" }
+                  }
+                }}
+              />
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
 
-              </CardBody>
-              <CardFooter>
-                <div className="chart-legend">
-                  <i className="fa fa-circle text-info" /> Ataque{" "}
-                  <i className="fa fa-circle text-warning" /> Defesa
-                </div>
-                <hr />
-               
-              </CardFooter>
-            </Card>
-          </Col>
-        </Row>
-      </div>
-    </>
+      <Row>
+        <Col md="12">
+          <Card className="card-chart">
+            <CardHeader>
+              <CardTitle tag="h5">Distribuição por Nível</CardTitle>
+              <p className="card-category">Total De Cada Tipo De Jogada (A–F)</p>
+            </CardHeader>
+            <CardBody style={{ height: "300px", position: "relative" }}>
+              <Line
+                data={{
+                  labels: niveis,
+                  datasets: [
+                    {
+                      label: "Total por Nível",
+                      data: contagemPorNivel,
+                      borderColor: "#A259FF",
+                      borderWidth: 2,
+                      pointBackgroundColor: "#A259FF",
+                      pointRadius: 4,
+                      backgroundColor: "rgba(162, 89, 255, 0.2)",
+                      fill: true,
+                      tension: 0.4
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: { stepSize: 1 }
+                    }
+                  },
+                  plugins: {
+                    legend: { display: true, position: "top" },
+                    tooltip: { mode: "index", intersect: false }
+                  }
+                }}
+              />
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 }
 
