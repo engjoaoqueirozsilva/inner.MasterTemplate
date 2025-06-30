@@ -19,7 +19,6 @@
 
 */
 import React from "react";
-import { useState } from "react";
 import { Line, Pie } from "react-chartjs-2";
 import {
   dashboardEmailStatisticsChart,
@@ -42,45 +41,10 @@ import {
 function DashAtleta() {
 
 
-    //Saque
-    let [count0, setCount0] = useState(0);
-    let [count1, setCount1] = useState(0);
-    let [deCount0, setDeCount0] = useState(0);
-    let [deCount1, setDeCount1] = useState(0);
-
-    //Ataque
-    let [count2, setCount2] = useState(0);
-    let [count3, setCount3] = useState(0);
-    let [deCount2, setDeCount2] = useState(0);
-    let [deCount3, setDeCount3] = useState(0);
+   
 
 
-    //Defesa
-    let  [count4, setCount4] = useState(0);
-    let [count5, setCount5] = useState(0);
-    let [deCount4, setDeCount4] = useState(0);
-    let [deCount5, setDeCount5] = useState(0);
-
-    //Passe
-    let [count6, setCount6] = useState(0);
-    let [count7, setCount7] = useState(0);
-    let [deCount6, setDeCount6] = useState(0);
-    let [deCount7, setDeCount7] = useState(0);
-
-    //Levantamento
-    let [count8, setCount8] = useState(0);
-    let [count9, setCount9] = useState(0);
-    let [deCount8, setDeCount8] = useState(0);
-    let [deCount9, setDeCount9] = useState(0);
-
-    //Bloqueio
-    let [count10, setCount10] = useState(0);
-    let [count11, setCount11] = useState(0);
-    let [deCount10, setDeCount10] = useState(0);
-    let [deCount11, setDeCount11] = useState(0);
-
-
-    let fundamentos = [
+    const fundamentos = [
         "Saque",
         "Ataque",
         "Defesa",
@@ -89,7 +53,7 @@ function DashAtleta() {
         "Bloqueio"
     ]
 
-    let cores = [
+    const cores = [
         "warning",
         "primary",
         "danger",
@@ -98,63 +62,14 @@ function DashAtleta() {
         "warning"
     ]
 
-    let atletas = [
+    const atletas = [
         "Manuella Penharbel",
         "Murillo Penharbel"
     ]
 
     let HandleAdd = (atleta, fundamento) => {
-            if(atleta === "Manu Penharbel"){
-                switch(fundamento){
-                        case "Saque":           setCount0(++count0); break;
-                        case "Ataque":          setCount2(++count2); break;
-                        case "Defesa":          setCount4(++count4); break;
-                        case "Passe":           setCount6(++count6); break;
-                        case "Levantamento":    setCount8(++count8); break;
-                        case "Bloqueio":        setCount10(++count10); break;
-                        default:break;
-                }
-            }
-
-            if(atleta === "Murillo Penharbel"){
-                switch(fundamento){
-                    case "Saque":           setCount1(++count1); break;
-                    case "Ataque":          setCount3(++count3); break;
-                    case "Defesa":          setCount5(++count5); break;
-                    case "Passe":           setCount7(++count7); break;
-                    case "Levantamento":    setCount9(++count9); break;
-                    case "Bloqueio":        setCount11(++count11); break;
-                    default:break;
-                }
-            }
+           alert("Adicionando "+ fundamento+" para "+ atleta);
     }
-
-    let HandleRemove = (atleta, fundamento) => {
-        if(atleta === "Manu Penharbel"){
-            switch(fundamento){
-                    case "Saque": setDeCount0(++deCount0); break;
-                    case "Ataque": setDeCount2(++deCount2); break;
-                    case "Defesa": setDeCount4(++deCount4); break;
-                    case "Passe": setDeCount6(++deCount6); break;
-                    case "Levantamento": setDeCount8(++deCount8); break;
-                    case "Bloqueio": setDeCount10(++deCount10); break;
-                    default:break;
-            }
-        }
-
-        if(atleta === "Murillo Penharbel"){
-            switch(fundamento){
-                case "Saque": setDeCount1(++deCount1); break;
-                case "Ataque": setDeCount3(++deCount3); break;
-                case "Defesa": setDeCount5(++deCount5); break;
-                case "Passe": setDeCount7(++deCount7); break;
-                case "Levantamento": setDeCount9(++deCount9); break;
-                case "Bloqueio": setDeCount11(++deCount11); break;
-                default:break;
-            }
-        }
-    }
-
 
   return (
     <>
@@ -190,19 +105,53 @@ function DashAtleta() {
                                        
 
                                         <td>
-                                            <Button
-                                            block
-                                            color={cores[idx]}
-                                            onClick={() => HandleAdd(atleta, fundamento)}
-                                        >
-                                            +
-                                        </Button><br/><Button
-                                            block
-                                            color={cores[idx]}
-                                            onClick={() => HandleRemove(atleta, fundamento)}
-                                        >
-                                            -
-                                        </Button>
+                                            <Row>
+                                                <Button                               
+                                                    style={({ marginRight: "5px" })}
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                A
+                                                </Button>
+                                                <Button                             
+                                                    style={({ marginRight: "5px" , opacity: "0.8" })}  
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                    B
+                                                </Button>
+                                                <Button                               
+                                                    style={({ marginRight: "5px", opacity: "0.7" })}
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                    C
+                                                </Button>
+                                            </Row>
+                                        <br/>
+                                            <Row>
+                                                <Button                               
+                                                    style={({ marginRight: "5px", opacity: "0.6" })}
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                    D
+                                                </Button>
+                                                <Button                               
+                                                    style={({ marginRight: "5px", opacity: "0.5" })}
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                    E
+                                                </Button>
+                                                <Button                               
+                                                    style={({ marginRight: "5px", opacity: "0.3" })}
+                                                    color={cores[idx]}
+                                                    onClick={() => HandleAdd(atleta, fundamento)}
+                                                >
+                                                    F
+                                                </Button>
+                                            </Row>
                                         </td>
                                     )}
                                 </tr>
@@ -214,339 +163,6 @@ function DashAtleta() {
             </Card>
           </Col>
         </Row>
-        <Row>
-            <Col md="12">
-                <Card>
-                    <CardHeader>
-                        <CardTitle tag="h4">Performance no Treino</CardTitle>
-                    </CardHeader>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Saque</h4>
-                            <Table responsive>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count0}</td>
-                                                                        <td>{deCount0}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count1}</td>
-                                                                        <td>{deCount1}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Ataque</h4>
-                            <Table responsive>
-                            <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count2}</td>
-                                                                        <td>{deCount2}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count3}</td>
-                                                                        <td>{deCount3}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Defesa</h4>
-                            <Table responsive>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count4}</td>
-                                                                        <td>{deCount4}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count5}</td>
-                                                                        <td>{deCount5}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Passe</h4>
-                            <Table responsive>
-                            <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count6}</td>
-                                                                        <td>{deCount6}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count7}</td>
-                                                                        <td>{deCount7}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Levantamento</h4>
-                            <Table responsive>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count8}</td>
-                                                                        <td>{deCount8}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count9}</td>
-                                                                        <td>{deCount9}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h4>Bloqueio</h4>
-                            <Table responsive>
-                            <tbody>
-                                    <tr>
-                                        <td>
-                                        <table>
-                                            <theader className="text-primary">
-                                                <tr>
-                                                    <th>Manuella Penharbel</th>
-                                                    <th>Murillo Penharbel</th>
-                                                </tr>
-                                            </theader>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count10}</td>
-                                                                        <td>{deCount10}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td>
-                                                            <table>
-                                                                <theader>
-                                                                    <th>Acertos</th>
-                                                                    <th>Erros</th>
-                                                                </theader>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>{count11}</td>
-                                                                        <td>{deCount11}</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </td>
-                                
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-            </Col>
-        </Row>*/
         <Row>
           <Col md="4">
             <Card>
