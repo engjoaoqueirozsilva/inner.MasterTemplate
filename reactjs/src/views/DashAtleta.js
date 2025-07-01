@@ -130,7 +130,7 @@ function DashAtleta() {
       </Row>
 
       <Row className="mb-3 px-3">
-        <Col md="3">
+        <Col md="6">
           <label>Filtrar por Atleta:</label>
           <Input
             type="select"
@@ -143,7 +143,7 @@ function DashAtleta() {
             ))}
           </Input>
         </Col>
-        <Col md="3">
+        <Col md="6">
           <label>Filtrar por Fundamento:</label>
           <Input
             type="select"
