@@ -67,7 +67,7 @@ export default function SignIn(){
           if(user !== null)
             console.log("user", user);
 
-          history.push("/admin/Atletas")
+          history.push("/admin/Dashboard")
         }
         else{
           notify("tr", 3)
