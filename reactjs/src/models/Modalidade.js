@@ -1,8 +1,10 @@
-export const Modalidade = {
-    id: Number,
-    name: String,
-    responsavel: String,
-    auxiliar: String,
-    observacoes: String, // opcional
-  };
-  
+import mongoose from "mongoose";
+
+const ModalidadeSchema = new mongoose.Schema({
+  nome: String,
+  responsavelTecnico: String,
+  auxiliarTecnico: String,
+  observacoes: String,
+});
+
+export const ModalidadeModel = mongoose.model("Modalidade", ModalidadeSchema);

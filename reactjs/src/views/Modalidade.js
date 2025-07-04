@@ -1,28 +1,6 @@
-/* eslint-disable no-unused-vars */
-
-/* eslint-disable no-undef */
-/*!
-
-=========================================================
-* Paper Dashboard React - v1.3.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-* Licensed under MIT (https://github.com/creativetimofficial/paper-dashboard-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React from "react";
-import { useState , useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import NotificationAlert from "react-notification-alert";
-import axios from "axios";
+import ModalidadeService from "../services/ModalidadeService";
 
 // reactstrap components
 import {
@@ -35,110 +13,112 @@ import {
   Form,
   FormGroup,
   Input,
-  Button
+  Button,
+  Table,
 } from "reactstrap";
 
 function Modalidade() {
+  const notificationAlert = useRef();
 
-    const notificationAlert = React.useRef();
-    const notify = (place, color) => {
-      var type;
-      switch (color) {
-        case 1:
-          type = "primary";
-          break;
-        case 2:
-          type = "success";
-          break;
-        case 3:
-          type = "danger";
-          break;
-        case 4:
-          type = "warning";
-          break;
-        case 5:
-          type = "info";
-          break;
-        default:
-          break;
-      }
-      var options = {};
-      options = {
-        place: place,
-        message: (
-          <div>
-            <div>
-                <b> Erro </b> 
-            </div>
-          </div>
-        ),
-        type: type,
-        icon: "nc-icon nc-bell-55",
-        autoDismiss: 7
-      };
-      notificationAlert.current.notificationAlert(options);
+  const [formData, setFormData] = useState({
+    nome: "",
+    responsavelTecnico: "",
+    auxiliarTecnico: "",
+    observacoes: "",
+  });
+
+  const [modalidades, setModalidades] = useState([]);
+
+  useEffect(() => {
+    ModalidadeService.findAll()
+      .then(setModalidades)
+      .catch(() => notify("tr", 4, "Erro ao buscar modalidades"));
+  }, []);
+
+  const notify = (place, type, mensagem) => {
+    const types = ["", "primary", "success", "danger", "warning", "info"];
+    const options = {
+      place: place,
+      message: <div><b>{mensagem}</b></div>,
+      type: types[type],
+      icon: "nc-icon nc-bell-55",
+      autoDismiss: 5,
     };
+    notificationAlert.current.notificationAlert(options);
+  };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-    const [modalidades, setModalidades ] = useState({});
-
-    useEffect(() => {
-      axios.get('https://localhost:44311/api/services/app/ModalidadeService/GetAll').then(resp => {
-          setModalidades(resp.data.result)
-      })
-      .catch(err => {
-        notify("tr", 3)
-      });    
-  },[modalidades]);
-
-   
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const nova = await ModalidadeService.create(formData);
+      notify("tr", 2, "Modalidade cadastrada com sucesso!");
+      setModalidades(prev => [...prev, nova]);
+      setFormData({
+        nome: "",
+        responsavelTecnico: "",
+        auxiliarTecnico: "",
+        observacoes: "",
+      });
+    } catch (error) {
+      notify("tr", 3, "Erro ao salvar modalidade.");
+    }
+  };
 
   return (
     <>
       <div className="content">
-      <NotificationAlert ref={notificationAlert} />
+        <NotificationAlert ref={notificationAlert} />
+
         <Row>
           <Col md="12">
             <Card>
               <CardHeader>
                 <CardTitle tag="h4">Cadastro de Modalidade</CardTitle>
               </CardHeader>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col md="12">
-            <Card>
               <CardBody>
-              <Form>
+                <Form onSubmit={handleSubmit}>
                   <Row>
-                    <Col className="pr-1" md="12">
+                    <Col md="12">
                       <FormGroup>
                         <label>Nome da Modalidade</label>
                         <Input
+                          name="nome"
                           placeholder="Nome da Modalidade"
                           type="text"
+                          value={formData.nome}
+                          onChange={handleChange}
+                          required
                         />
                       </FormGroup>
                     </Col>
                   </Row>
                   <Row>
-                    <Col className="pr-1" md="6">
+                    <Col md="6">
                       <FormGroup>
                         <label>Responsável Técnico</label>
                         <Input
+                          name="responsavelTecnico"
                           placeholder="Responsável Técnico"
                           type="text"
+                          value={formData.responsavelTecnico}
+                          onChange={handleChange}
                         />
                       </FormGroup>
                     </Col>
-                    <Col className="pr-1" md="6">
+                    <Col md="6">
                       <FormGroup>
                         <label>Auxiliar Técnico</label>
                         <Input
+                          name="auxiliarTecnico"
                           placeholder="Auxiliar Técnico"
                           type="text"
+                          value={formData.auxiliarTecnico}
+                          onChange={handleChange}
                         />
                       </FormGroup>
                     </Col>
@@ -146,10 +126,13 @@ function Modalidade() {
                   <Row>
                     <Col md="12">
                       <FormGroup>
-                        <label>Comentários/Observaçoes</label>
+                        <label>Comentários/Observações</label>
                         <Input
+                          name="observacoes"
                           type="textarea"
-                          placeholder="Comentários/Observaçoes"
+                          placeholder="Comentários/Observações"
+                          value={formData.observacoes}
+                          onChange={handleChange}
                         />
                       </FormGroup>
                     </Col>
@@ -159,9 +142,7 @@ function Modalidade() {
                       <Button
                         className="btn-round"
                         color="primary"
-                        
-
-                        onClick={() => notify("tr", 3)}
+                        type="submit"
                       >
                         Incluir
                       </Button>
@@ -172,7 +153,38 @@ function Modalidade() {
             </Card>
           </Col>
         </Row>
-   
+
+        <Row>
+          <Col md="12">
+            <Card>
+              <CardHeader>
+                <CardTitle tag="h5">Modalidades Cadastradas</CardTitle>
+              </CardHeader>
+              <CardBody>
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Responsável Técnico</th>
+                      <th>Auxiliar Técnico</th>
+                      <th>Observações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {modalidades.map((mod, idx) => (
+                      <tr key={idx}>
+                        <td>{mod.nome}</td>
+                        <td>{mod.responsavelTecnico}</td>
+                        <td>{mod.auxiliarTecnico}</td>
+                        <td>{mod.observacoes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </>
   );
