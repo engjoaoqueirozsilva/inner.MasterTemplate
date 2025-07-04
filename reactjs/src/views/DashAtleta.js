@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Line, Pie } from "react-chartjs-2";
+import  TreinoService  from "../services/TreinoService";
+
 import {
   Card,
   CardHeader,
@@ -8,11 +10,12 @@ import {
   Table,
   Row,
   Col,
-  Button,
-  Input
+  Button
 } from "reactstrap";
-
 import NivelBotaoSet from "./NivelBotaoSet";
+import "./DashAtleta.css";
+
+const treinoService = new TreinoService()
 
 function DashAtleta() {
   const fundamentos = ["Saque", "Ataque", "Defesa", "Passe", "Levantamento", "Bloqueio"];
@@ -21,8 +24,8 @@ function DashAtleta() {
   const niveis = ["A", "B", "C", "D", "E", "F"];
 
   const [avaliacoes, setAvaliacoes] = useState({});
-  const [filtroAtleta, setFiltroAtleta] = useState("Todos");
-  const [filtroFundamento, setFiltroFundamento] = useState("Todos");
+  const [filtroAtleta, setFiltroAtleta] = useState(atletas);
+  const [filtroFundamento, setFiltroFundamento] = useState(fundamentos);
 
   useEffect(() => {
     const salvo = localStorage.getItem("avaliacoes");
@@ -73,31 +76,37 @@ function DashAtleta() {
   };
 
   const enviarParaAPI = async () => {
-    try {
-      const response = await fetch("/api/avaliacoes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ treinoId: 123, avaliacoes })
-      });
+    const treinoPayload = {
+      treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
+      data: new Date().toISOString(),
+      modalidade: "Vôlei",
+      responsavel: "Sistema Automático",
+      local: "Quadra A",
+      atletas: Object.keys(avaliacoes).map(nome => ({
+        nome,
+        avaliacoes: avaliacoes[nome]
+      })),
+      observacoes: "Treino registrado via DashAtleta",
+      finalizado: true
+    };
 
-      if (response.ok) {
-        alert("Avaliação enviada com sucesso!");
-        console.log("Dados enviados:", avaliacoes);
-        setAvaliacoes({});
-        localStorage.removeItem("avaliacoes");
-      } else {
-        alert("Erro ao enviar os dados.");
-      }
+    try {
+      await treinoService.create(treinoPayload); // chamada via axios
+      alert("✅ Avaliação enviada ao MongoDB!");
+      console.log("📤 Enviado:", treinoPayload);
+      setAvaliacoes({});
+      localStorage.removeItem("avaliacoes");
     } catch (err) {
-      console.error("Erro ao enviar para a API:", err);
-      alert("Falha na comunicação com o servidor.");
+      console.error(err);
+      alert("❌ Erro ao enviar os dados ao MongoDB.");
     }
   };
 
+
   const totaisFundamento = fundamentos.map(fundamento => {
-    if (filtroFundamento !== "Todos" && filtroFundamento !== fundamento) return 0;
+    if (!filtroFundamento.includes(fundamento)) return 0;
     return atletas.reduce((acc, atleta) => {
-      if (filtroAtleta !== "Todos" && filtroAtleta !== atleta) return acc;
+      if (!filtroAtleta.includes(atleta)) return acc;
       return acc + (avaliacoes[atleta]?.[fundamento]?.length || 0);
     }, 0);
   });
@@ -105,9 +114,9 @@ function DashAtleta() {
   const contagemPorNivel = niveis.map(nivel => {
     let total = 0;
     for (const atleta in avaliacoes) {
-      if (filtroAtleta !== "Todos" && filtroAtleta !== atleta) continue;
+      if (!filtroAtleta.includes(atleta)) continue;
       for (const fundamento in avaliacoes[atleta]) {
-        if (filtroFundamento !== "Todos" && filtroFundamento !== fundamento) continue;
+        if (!filtroFundamento.includes(fundamento)) continue;
         total += avaliacoes[atleta][fundamento].filter(n => n === nivel).length;
       }
     }
@@ -116,6 +125,49 @@ function DashAtleta() {
 
   return (
     <div className="content">
+      <Row className="px-3 mb-3">
+        <Col md="6" className="filtro-bloco">
+          <div className="filtro-titulo">Filtrar por Atletas:</div>
+          <div className="filtro-container">
+            {atletas.map((nome, i) => (
+              <div
+                key={i}
+                className={`filtro-botao ${filtroAtleta.includes(nome) ? "ativo" : ""}`}
+                onClick={() =>
+                  setFiltroAtleta(prev =>
+                    prev.includes(nome)
+                      ? prev.filter(n => n !== nome)
+                      : [...prev, nome]
+                  )
+                }
+              >
+                {nome}
+              </div>
+            ))}
+          </div>
+        </Col>
+        <Col md="6" className="filtro-bloco">
+          <div className="filtro-titulo">Filtrar por Fundamentos:</div>
+          <div className="filtro-container">
+            {fundamentos.map((fund, i) => (
+              <div
+                key={i}
+                className={`filtro-botao ${filtroFundamento.includes(fund) ? "ativo" : ""}`}
+                onClick={() =>
+                  setFiltroFundamento(prev =>
+                    prev.includes(fund)
+                      ? prev.filter(f => f !== fund)
+                      : [...prev, fund]
+                  )
+                }
+              >
+                {fund}
+              </div>
+            ))}
+          </div>
+        </Col>
+      </Row>
+
       <Row>
         <Col md="12">
           <Card>
@@ -129,35 +181,6 @@ function DashAtleta() {
         </Col>
       </Row>
 
-      <Row className="mb-3 px-3">
-        <Col md="6">
-          <label>Filtrar por Atleta:</label>
-          <Input
-            type="select"
-            value={filtroAtleta}
-            onChange={(e) => setFiltroAtleta(e.target.value)}
-          >
-            <option>Todos</option>
-            {atletas.map((a, i) => (
-              <option key={i}>{a}</option>
-            ))}
-          </Input>
-        </Col>
-        <Col md="6">
-          <label>Filtrar por Fundamento:</label>
-          <Input
-            type="select"
-            value={filtroFundamento}
-            onChange={(e) => setFiltroFundamento(e.target.value)}
-          >
-            <option>Todos</option>
-            {fundamentos.map((f, i) => (
-              <option key={i}>{f}</option>
-            ))}
-          </Input>
-        </Col>
-      </Row>
-
       <Row>
         <Col md="12">
           <Card>
@@ -167,7 +190,7 @@ function DashAtleta() {
                   <tr>
                     <th>Nome Atleta</th>
                     {fundamentos
-                      .filter(f => filtroFundamento === "Todos" || filtroFundamento === f)
+                      .filter(f => filtroFundamento.includes(f))
                       .map((fundamento, idx) => (
                         <th key={idx}>{fundamento}</th>
                       ))}
@@ -175,12 +198,12 @@ function DashAtleta() {
                 </thead>
                 <tbody>
                   {atletas
-                    .filter(a => filtroAtleta === "Todos" || filtroAtleta === a)
+                    .filter(a => filtroAtleta.includes(a))
                     .map((atleta, index) => (
                       <tr key={index}>
                         <td>{atleta}</td>
                         {fundamentos
-                          .filter(f => filtroFundamento === "Todos" || filtroFundamento === f)
+                          .filter(f => filtroFundamento.includes(f))
                           .map((fundamento, idx) => {
                             const total = avaliacoes[atleta]?.[fundamento]?.length || 0;
 
@@ -194,26 +217,24 @@ function DashAtleta() {
                                 />
                                 <div className="d-flex justify-content-between align-items-center mt-1 gap-1">
                                   <small className="text-muted">Total: {total}</small>
-                                  {total > 0 && (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        color="danger"
-                                        outline
-                                        onClick={() => desfazerUltima(atleta, fundamento)}
-                                      >
-                                        Desfazer
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        color="secondary"
-                                        outline
-                                        onClick={() => limparFundamento(atleta, fundamento)}
-                                      >
-                                        Limpar
-                                      </Button>
-                                    </>
-                                  )}
+                                  <Button
+                                    size="sm"
+                                    color="danger"
+                                    outline
+                                    disabled={total === 0}
+                                    onClick={() => desfazerUltima(atleta, fundamento)}
+                                  >
+                                    Desfazer
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    color="secondary"
+                                    outline
+                                    disabled={total === 0}
+                                    onClick={() => limparFundamento(atleta, fundamento)}
+                                  >
+                                    Limpar
+                                  </Button>
                                 </div>
                               </td>
                             );

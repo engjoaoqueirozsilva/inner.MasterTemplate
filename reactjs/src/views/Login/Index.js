@@ -28,7 +28,7 @@ export default function SignIn() {
     setLoadingAuth(true);
 
     if (email && password) {
-      if (email === 'joao@trator.com' && password === '193178') {
+      if (email === 'jk' && password === '1931') {
         setTimeout(() => {
           history.push("/admin/Dashboard");
         }, 900); // tempo para a animação (300ms)
