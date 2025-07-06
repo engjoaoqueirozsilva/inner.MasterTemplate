@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = '0c4d8a79-bde6-4e3a-a2ef-5c6e95727e2e'; // 🔒 Pode mover isso para um arquivo .env no front
+const API_KEY = '0c4d8a79-bde6-4e3a-a2ef-5c6e95727e2e'; // Sua chave secreta
 
 class BaseService {
   constructor(baseUrl, endpoint) {
@@ -8,7 +8,7 @@ class BaseService {
       baseURL: `${baseUrl}/${endpoint}`,
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': API_KEY // 🔑 Cabeçalho incluído automaticamente
+        'x-api-key': API_KEY
       }
     });
   }

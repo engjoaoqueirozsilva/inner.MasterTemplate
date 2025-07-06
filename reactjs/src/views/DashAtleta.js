@@ -75,32 +75,32 @@ function DashAtleta() {
     });
   };
 
-  const enviarParaAPI = async () => {
-    const treinoPayload = {
-      treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
-      data: new Date().toISOString(),
-      modalidade: "Vôlei",
-      responsavel: "Sistema Automático",
-      local: "Quadra A",
-      atletas: Object.keys(avaliacoes).map(nome => ({
-        nome,
-        avaliacoes: avaliacoes[nome]
-      })),
-      observacoes: "Treino registrado via DashAtleta",
-      finalizado: true
-    };
+    const enviarParaAPI = async () => {
+      const treinoPayload = {
+        treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
+        data: new Date().toISOString(),
+        modalidade: "Vôlei",
+        responsavel: "Sistema Automático",
+        local: "Quadra A",
+        atletas: Object.keys(avaliacoes).map(nome => ({
+          nome,
+          avaliacoes: avaliacoes[nome]
+        })),
+        observacoes: "Treino registrado via DashAtleta",
+        finalizado: true
+      };
 
-    try {
-      await treinoService.create(treinoPayload); // chamada via axios
-      alert("✅ Avaliação enviada ao MongoDB!");
-      console.log("📤 Enviado:", treinoPayload);
-      setAvaliacoes({});
-      localStorage.removeItem("avaliacoes");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erro ao enviar os dados ao MongoDB.");
-    }
-  };
+      try {
+        await treinoService.create(treinoPayload); // chamada via axios
+        alert("✅ Avaliação enviada ao MongoDB!");
+        console.log("📤 Enviado:", treinoPayload);
+        setAvaliacoes({});
+        localStorage.removeItem("avaliacoes");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Erro ao enviar os dados ao MongoDB.");
+      }
+    };
 
 
   const totaisFundamento = fundamentos.map(fundamento => {

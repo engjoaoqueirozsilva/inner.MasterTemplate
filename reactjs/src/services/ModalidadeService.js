@@ -1,6 +1,6 @@
 import  BaseService  from './base/BaseService';
 
-const API_BASE_URL = 'http://t4kc4cg04kgoo8kcccowwscw.147.93.68.31.sslip.io/api';
+const API_BASE_URL = 'http://harkonen.ia-outsider.com.br/api';
 
 class ModalidadeService extends BaseService {
   constructor() {
