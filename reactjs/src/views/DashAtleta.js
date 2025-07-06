@@ -1,6 +1,13 @@
+
+// Arquivo DashAtleta corrigido
+
 import React, { useEffect, useState } from "react";
-import { Line, Pie } from "react-chartjs-2";
-import  TreinoService  from "../services/TreinoService";
+import { Pie } from "react-chartjs-2";
+import TreinoService from "../services/TreinoService";
+import PlanoService from "../services/PlanoService";
+import SelectModalidade from "../components/Select/SelectModalidade";
+import SelectPlano from "../components/Select/SelectPlano";
+import GraficoPorFundamento from "../components/Charts/GraficoPorFundamento";
 
 import {
   Card,
@@ -10,22 +17,28 @@ import {
   Table,
   Row,
   Col,
-  Button
+  Button,
 } from "reactstrap";
 import NivelBotaoSet from "./NivelBotaoSet";
 import "./DashAtleta.css";
 
-const treinoService = new TreinoService()
+const treinoService = new TreinoService();
+const planoService = new PlanoService();
 
 function DashAtleta() {
-  const fundamentos = ["Saque", "Ataque", "Defesa", "Passe", "Levantamento", "Bloqueio"];
-  const cores = ["warning", "primary", "danger", "success", "default", "warning"];
-  const atletas = ["Manuella Penharbel", "Murillo Penharbel"];
-  const niveis = ["A", "B", "C", "D", "E", "F"];
-
   const [avaliacoes, setAvaliacoes] = useState({});
-  const [filtroAtleta, setFiltroAtleta] = useState(atletas);
-  const [filtroFundamento, setFiltroFundamento] = useState(fundamentos);
+  const [filtroAtleta, setFiltroAtleta] = useState([]);
+  const [filtroFundamento, setFiltroFundamento] = useState([]);
+
+  const [modalidade, setModalidade] = useState("");
+  const [planos, setPlanos] = useState([]);
+  const [planoSelecionado, setPlanoSelecionado] = useState(null);
+
+  const [atletas, setAtletas] = useState([]);
+  const [fundamentos, setFundamentos] = useState([]);
+
+  const niveis = ["A", "B", "C", "D", "E", "F"];
+  const cores = ["warning", "primary", "danger", "success", "default", "warning"];
 
   useEffect(() => {
     const salvo = localStorage.getItem("avaliacoes");
@@ -36,74 +49,106 @@ function DashAtleta() {
     localStorage.setItem("avaliacoes", JSON.stringify(avaliacoes));
   }, [avaliacoes]);
 
+  useEffect(() => {
+    if (!modalidade) {
+      setPlanos([]);
+      return;
+    }
+    planoService.findByModalidade(modalidade).then((res) => {
+      setPlanos(res);
+    });
+  }, [modalidade]);
+
+  const iniciarTreino = (plano) => {
+    if (!plano) return;
+
+    setPlanoSelecionado(plano);
+    setAtletas(plano.participantes.map((p) => p.nome));
+    setFundamentos(plano.fundamentos);
+
+    setFiltroAtleta(plano.participantes.map((p) => p.nome));
+    setFiltroFundamento(plano.fundamentos);
+    setAvaliacoes({});
+    localStorage.removeItem("avaliacoes");
+  };
+
+  const cancelarTreino = () => {
+    setModalidade("");
+    setPlanos([]);
+    setPlanoSelecionado(null);
+    setAtletas([]);
+    setFundamentos([]);
+    setFiltroAtleta([]);
+    setFiltroFundamento([]);
+    setAvaliacoes({});
+    localStorage.removeItem("avaliacoes");
+  };
+
   const registrarJogada = (atleta, fundamento, nivel) => {
-    setAvaliacoes(prev => {
+    setAvaliacoes((prev) => {
       const jogadasPrevias = prev[atleta]?.[fundamento] || [];
       return {
         ...prev,
         [atleta]: {
           ...(prev[atleta] || {}),
-          [fundamento]: [...jogadasPrevias, nivel]
-        }
+          [fundamento]: [...jogadasPrevias, nivel],
+        },
       };
     });
   };
 
   const desfazerUltima = (atleta, fundamento) => {
-    setAvaliacoes(prev => {
+    setAvaliacoes((prev) => {
       const jogadas = prev[atleta]?.[fundamento] || [];
       const novasJogadas = jogadas.slice(0, -1);
       return {
         ...prev,
         [atleta]: {
           ...prev[atleta],
-          [fundamento]: novasJogadas
-        }
+          [fundamento]: novasJogadas,
+        },
       };
     });
   };
 
   const limparFundamento = (atleta, fundamento) => {
-    setAvaliacoes(prev => {
-      return {
-        ...prev,
-        [atleta]: {
-          ...prev[atleta],
-          [fundamento]: []
-        }
-      };
-    });
+    setAvaliacoes((prev) => ({
+      ...prev,
+      [atleta]: {
+        ...prev[atleta],
+        [fundamento]: [],
+      },
+    }));
   };
 
-    const enviarParaAPI = async () => {
-      const treinoPayload = {
-        treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
-        data: new Date().toISOString(),
-        modalidade: "Vôlei",
-        responsavel: "Sistema Automático",
-        local: "Quadra A",
-        atletas: Object.keys(avaliacoes).map(nome => ({
-          nome,
-          avaliacoes: avaliacoes[nome]
-        })),
-        observacoes: "Treino registrado via DashAtleta",
-        finalizado: true
-      };
-
-      try {
-        await treinoService.create(treinoPayload); // chamada via axios
-        alert("✅ Avaliação enviada ao MongoDB!");
-        console.log("📤 Enviado:", treinoPayload);
-        setAvaliacoes({});
-        localStorage.removeItem("avaliacoes");
-      } catch (err) {
-        console.error(err);
-        alert("❌ Erro ao enviar os dados ao MongoDB.");
-      }
+  const enviarParaAPI = async () => {
+    const treinoPayload = {
+      treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
+      data: new Date().toISOString(),
+      modalidade: planoSelecionado?.modalidade?.nome || "Indefinido",
+      responsavel: "Sistema Automático",
+      local: "Quadra A",
+      atletas: Object.keys(avaliacoes).map((nome) => ({
+        nome,
+        avaliacoes: avaliacoes[nome],
+      })),
+      observacoes: `Treino do plano ${planoSelecionado?.nome || ""}`,
+      finalizado: true,
     };
 
+    try {
+      await treinoService.create(treinoPayload);
+      alert("✅ Avaliação enviada ao MongoDB!");
+      console.log("📤 Enviado:", treinoPayload);
+      setAvaliacoes({});
+      localStorage.removeItem("avaliacoes");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Erro ao enviar os dados ao MongoDB.");
+    }
+  };
 
-  const totaisFundamento = fundamentos.map(fundamento => {
+  const totaisFundamento = fundamentos.map((fundamento) => {
     if (!filtroFundamento.includes(fundamento)) return 0;
     return atletas.reduce((acc, atleta) => {
       if (!filtroAtleta.includes(atleta)) return acc;
@@ -111,13 +156,13 @@ function DashAtleta() {
     }, 0);
   });
 
-  const contagemPorNivel = niveis.map(nivel => {
+  const contagemPorNivel = niveis.map((nivel) => {
     let total = 0;
     for (const atleta in avaliacoes) {
       if (!filtroAtleta.includes(atleta)) continue;
       for (const fundamento in avaliacoes[atleta]) {
         if (!filtroFundamento.includes(fundamento)) continue;
-        total += avaliacoes[atleta][fundamento].filter(n => n === nivel).length;
+        total += avaliacoes[atleta][fundamento].filter((n) => n === nivel).length;
       }
     }
     return total;
@@ -125,46 +170,92 @@ function DashAtleta() {
 
   return (
     <div className="content">
-      <Row className="px-3 mb-3">
-        <Col md="6" className="filtro-bloco">
-          <div className="filtro-titulo">Filtrar por Atletas:</div>
-          <div className="filtro-container">
-            {atletas.map((nome, i) => (
-              <div
-                key={i}
-                className={`filtro-botao ${filtroAtleta.includes(nome) ? "ativo" : ""}`}
-                onClick={() =>
-                  setFiltroAtleta(prev =>
-                    prev.includes(nome)
-                      ? prev.filter(n => n !== nome)
-                      : [...prev, nome]
-                  )
-                }
-              >
-                {nome}
-              </div>
-            ))}
-          </div>
-        </Col>
-        <Col md="6" className="filtro-bloco">
-          <div className="filtro-titulo">Filtrar por Fundamentos:</div>
-          <div className="filtro-container">
-            {fundamentos.map((fund, i) => (
-              <div
-                key={i}
-                className={`filtro-botao ${filtroFundamento.includes(fund) ? "ativo" : ""}`}
-                onClick={() =>
-                  setFiltroFundamento(prev =>
-                    prev.includes(fund)
-                      ? prev.filter(f => f !== fund)
-                      : [...prev, fund]
-                  )
-                }
-              >
-                {fund}
-              </div>
-            ))}
-          </div>
+      <Card>
+        <CardBody>
+          <Row className="mb-3">
+            <Col md="6">
+              <Card>
+                <CardBody>
+                  <SelectModalidade
+                    value={modalidade}
+                    onChange={(val) => {
+                      setModalidade(val);
+                      setPlanoSelecionado(null);
+                    }}
+                  />
+                </CardBody>
+              </Card>
+
+            </Col>
+            <Col md="6">
+              <Card>
+                <CardBody>
+
+                  <SelectPlano
+                    planos={planos}
+                    modalidadeId={modalidade}
+                    value={planoSelecionado?._id || ""}
+                    onChange={(planoId) => {
+                      const plano = planos.find((p) => p._id === planoId);
+                      if (plano) iniciarTreino(plano);
+                    }}
+                  />
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        </CardBody>
+      </Card>
+
+
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardBody>
+              <Row>
+                <Col md="6" className="filtro-bloco">
+                  <div className="filtro-titulo">Filtrar por Atletas:</div>
+                  <div className="filtro-container">
+                    {atletas.map((nome, i) => (
+                      <div
+                        key={i}
+                        className={`filtro-botao ${filtroAtleta.includes(nome) ? "ativo" : ""}`}
+                        onClick={() =>
+                          setFiltroAtleta((prev) =>
+                            prev.includes(nome)
+                              ? prev.filter((n) => n !== nome)
+                              : [...prev, nome]
+                          )
+                        }
+                      >
+                        {nome}
+                      </div>
+                    ))}
+                  </div>
+                </Col>
+                <Col md="6" className="filtro-bloco">
+                  <div className="filtro-titulo">Filtrar por Fundamentos:</div>
+                  <div className="filtro-container">
+                    {fundamentos.map((fund, i) => (
+                      <div
+                        key={i}
+                        className={`filtro-botao ${filtroFundamento.includes(fund) ? "ativo" : ""}`}
+                        onClick={() =>
+                          setFiltroFundamento((prev) =>
+                            prev.includes(fund)
+                              ? prev.filter((f) => f !== fund)
+                              : [...prev, fund]
+                          )
+                        }
+                      >
+                        {fund}
+                      </div>
+                    ))}
+                  </div>
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
         </Col>
       </Row>
 
@@ -173,9 +264,14 @@ function DashAtleta() {
           <Card>
             <CardHeader className="d-flex justify-content-between align-items-center">
               <CardTitle tag="h4">Análise de Performance em Treino</CardTitle>
-              <Button color="success" onClick={enviarParaAPI}>
-                Finalizar Avaliação
-              </Button>
+              <div className="d-flex gap-2">
+                <Button size="sm" color="secondary" onClick={cancelarTreino}>
+                  Cancelar
+                </Button>
+                <Button size="sm" color="success" onClick={enviarParaAPI}>
+                  Finalizar
+                </Button>
+              </div>
             </CardHeader>
           </Card>
         </Col>
@@ -190,7 +286,7 @@ function DashAtleta() {
                   <tr>
                     <th>Nome Atleta</th>
                     {fundamentos
-                      .filter(f => filtroFundamento.includes(f))
+                      .filter((f) => filtroFundamento.includes(f))
                       .map((fundamento, idx) => (
                         <th key={idx}>{fundamento}</th>
                       ))}
@@ -198,12 +294,12 @@ function DashAtleta() {
                 </thead>
                 <tbody>
                   {atletas
-                    .filter(a => filtroAtleta.includes(a))
+                    .filter((a) => filtroAtleta.includes(a))
                     .map((atleta, index) => (
                       <tr key={index}>
                         <td>{atleta}</td>
                         {fundamentos
-                          .filter(f => filtroFundamento.includes(f))
+                          .filter((f) => filtroFundamento.includes(f))
                           .map((fundamento, idx) => {
                             const total = avaliacoes[atleta]?.[fundamento]?.length || 0;
 
@@ -268,17 +364,17 @@ function DashAtleta() {
                         "#36b9cc",
                         "#f6c23e",
                         "#e74a3b",
-                        "#858796"
-                      ]
-                    }
-                  ]
+                        "#858796",
+                      ],
+                    },
+                  ],
                 }}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
                   plugins: {
-                    legend: { position: "bottom" }
-                  }
+                    legend: { position: "bottom" },
+                  },
                 }}
               />
             </CardBody>
@@ -286,50 +382,17 @@ function DashAtleta() {
         </Col>
       </Row>
 
-      <Row>
-        <Col md="12">
-          <Card className="card-chart">
-            <CardHeader>
-              <CardTitle tag="h5">Distribuição por Nível</CardTitle>
-              <p className="card-category">Total De Cada Tipo De Jogada (A–F)</p>
-            </CardHeader>
-            <CardBody style={{ height: "300px", position: "relative" }}>
-              <Line
-                data={{
-                  labels: niveis,
-                  datasets: [
-                    {
-                      label: "Total por Nível",
-                      data: contagemPorNivel,
-                      borderColor: "#A259FF",
-                      borderWidth: 2,
-                      pointBackgroundColor: "#A259FF",
-                      pointRadius: 4,
-                      backgroundColor: "rgba(162, 89, 255, 0.2)",
-                      fill: true,
-                      tension: 0.4
-                    }
-                  ]
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: { stepSize: 1 }
-                    }
-                  },
-                  plugins: {
-                    legend: { display: true, position: "top" },
-                    tooltip: { mode: "index", intersect: false }
-                  }
-                }}
-              />
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+      <GraficoPorFundamento
+  fundamentos={fundamentos}
+  filtroFundamento={filtroFundamento}
+  setFiltroFundamento={setFiltroFundamento}
+  atletas={atletas}
+  filtroAtleta={filtroAtleta}
+  avaliacoes={avaliacoes}
+  niveis={niveis}
+/>
+
+
     </div>
   );
 }

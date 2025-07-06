@@ -24,13 +24,14 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
   }, [modalidadeId, setSelecionados]);
 
   const adicionar = (id) => {
-    if (!selecionados.includes(id)) {
-      setSelecionados([...selecionados, id]);
+    const atleta = atletas.find((a) => a._id === id);
+    if (atleta && !selecionados.some((s) => s._id === id)) {
+      setSelecionados([...selecionados, atleta]);
     }
   };
 
   const remover = (id) => {
-    setSelecionados(selecionados.filter((sid) => sid !== id));
+    setSelecionados(selecionados.filter((s) => s._id !== id));
   };
 
   return (
@@ -40,18 +41,19 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
         <Col md="6">
           <Label>Disponíveis</Label>
           {atletas
-            .filter((a) => !selecionados.includes(a._id))
+            .filter((a) => !selecionados.some((s) => s._id === a._id))
             .map((a) => (
               <div
                 key={a._id}
                 className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
               >
-                <span>{a.nome}</span>
-                <Button
-                  size="sm"
-                  color="success"
-                  onClick={() => adicionar(a._id)}
-                >
+                <span>
+                  {a.nome}
+                  {a.posicao || a.camisa
+                    ? ` (${[a.posicao, a.camisa ? `#${a.camisa}` : null].filter(Boolean).join(", ")})`
+                    : ""}
+                </span>
+                <Button size="sm" color="success" onClick={() => adicionar(a._id)}>
                   +
                 </Button>
               </div>
@@ -59,23 +61,22 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
         </Col>
         <Col md="6">
           <Label>Selecionados</Label>
-          {atletas
-            .filter((a) => selecionados.includes(a._id))
-            .map((a) => (
-              <div
-                key={a._id}
-                className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
-              >
-                <span>{a.nome}</span>
-                <Button
-                  size="sm"
-                  color="danger"
-                  onClick={() => remover(a._id)}
-                >
-                  ×
-                </Button>
-              </div>
-            ))}
+          {selecionados.map((a) => (
+            <div
+              key={a._id}
+              className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
+            >
+              <span>
+                {a.nome}
+                {a.posicao || a.camisa
+                  ? ` (${[a.posicao, a.camisa ? `#${a.camisa}` : null].filter(Boolean).join(", ")})`
+                  : ""}
+              </span>
+              <Button size="sm" color="danger" onClick={() => remover(a._id)}>
+                ×
+              </Button>
+            </div>
+          ))}
         </Col>
       </Row>
     </FormGroup>

@@ -24,6 +24,7 @@ function Atleta() {
     posicaoPreferencial: "",
     posicaoSecundaria: "",
     modalidade: "",
+    camisa: "",
     contatoEmergencia: {
       nome: "",
       telefone: ""
@@ -67,6 +68,13 @@ function Atleta() {
     }
   };
 
+  const handleCamisaChange = (e) => {
+    const valor = e.target.value.replace(/\D/g, "");
+    if (valor.length <= 3) {
+      setFormData(prev => ({ ...prev, camisa: valor }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -78,6 +86,7 @@ function Atleta() {
         posicaoPreferencial: "",
         posicaoSecundaria: "",
         modalidade: "",
+        camisa: "",
         contatoEmergencia: { nome: "", telefone: "" }
       });
     } catch (error) {
@@ -113,6 +122,14 @@ function Atleta() {
                       </FormGroup>
                     </Col>
                     <Col md="6">
+                      <SelectModalidade
+                        value={formData.modalidade}
+                        onChange={(val) => setFormData(prev => ({ ...prev, modalidade: val }))}
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md="4">
                       <FormGroup>
                         <label>Posição Preferencial</label>
                         <Input
@@ -123,9 +140,7 @@ function Atleta() {
                         />
                       </FormGroup>
                     </Col>
-                  </Row>
-                  <Row>
-                    <Col md="6">
+                    <Col md="4">
                       <FormGroup>
                         <label>Posição Secundária</label>
                         <Input
@@ -136,11 +151,18 @@ function Atleta() {
                         />
                       </FormGroup>
                     </Col>
-                    <Col md="6">
-                      <SelectModalidade
-                        value={formData.modalidade}
-                        onChange={(val) => setFormData(prev => ({ ...prev, modalidade: val }))}
-                      />
+                    <Col md="4">
+                      <FormGroup>
+                        <label>Número da Camisa</label>
+                        <Input
+                          name="camisa"
+                          value={formData.camisa}
+                          onChange={handleCamisaChange}
+                          placeholder="Ex: 10"
+                          maxLength="3"
+                          inputMode="numeric"
+                        />
+                      </FormGroup>
                     </Col>
                   </Row>
                   <Row>
@@ -192,6 +214,7 @@ function Atleta() {
                     <tr>
                       <th>Nome</th>
                       <th>Posição</th>
+                      <th>Camisa</th>
                       <th>Modalidade</th>
                       <th>Contato Emergência</th>
                     </tr>
@@ -201,6 +224,7 @@ function Atleta() {
                       <tr key={idx}>
                         <td>{a.nome}</td>
                         <td>{a.posicaoPreferencial}</td>
+                        <td>{a.camisa || "-"}</td>
                         <td>{a.modalidade?.nome || "-"}</td>
                         <td>{a.contatoEmergencia?.nome} - {a.contatoEmergencia?.telefone}</td>
                       </tr>

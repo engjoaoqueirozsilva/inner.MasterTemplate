@@ -1,8 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import NotificationAlert from "react-notification-alert";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectAtletasParticipantes from "../components/Select/SelectAtletasParticipantes";
 import SelectFundamento from "../components/Select/SelectFundamento";
+import PlanoService from "../services/PlanoService"; // Importando o serviço de Plano
+
 
 import {
   Card,
@@ -55,11 +57,16 @@ function Treino() {
         ...formData,
         participantes: participantes.map((p) => ({
           id: p._id,
-          nome: p.nome
-        }))
+          nome: p.nome,
+          posicao: p.posicao,
+          camisa: p.camisa
+        })),
+
       };
 
-      // PlanoService.create(treinoFinal) - placeholder
+      console.log("🔍 Payload enviado:", treinoFinal); // 👈 debug útil
+
+      await PlanoService.create(treinoFinal);
       setTreinos((prev) => [...prev, treinoFinal]);
 
       notify("tr", 2, "Treino cadastrado com sucesso!");
@@ -67,7 +74,7 @@ function Treino() {
       setFormData({
         nome: "",
         modalidade: "",
-        fundamentos: [], // reset limpo
+        fundamentos: [],
       });
       setParticipantes([]);
     } catch (error) {
@@ -75,6 +82,31 @@ function Treino() {
       notify("tr", 3, "Erro ao cadastrar treino.");
     }
   };
+
+  useEffect(() => {
+    const carregarPlanosPorModalidade = async () => {
+      if (!formData.modalidade) {
+        setTreinos([]);
+        return;
+      }
+
+      try {
+        const todos = await PlanoService.findAll();
+        const planosFiltrados = todos.filter(
+          (p) =>
+            p.modalidade === formData.modalidade ||
+            p.modalidade?._id === formData.modalidade
+        );
+        setTreinos(planosFiltrados);
+      } catch (error) {
+        console.error("Erro ao carregar planos:", error);
+        setTreinos([]);
+      }
+    };
+
+    carregarPlanosPorModalidade();
+  }, [formData.modalidade]);
+
 
   const treinosFiltrados = treinos.filter((t) =>
     t.nome.toLowerCase().includes(filtro.toLowerCase())
@@ -165,7 +197,7 @@ function Treino() {
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>Modalidade</th>
+                    <th>Fundamentos</th>
                     <th>Participantes</th>
                   </tr>
                 </thead>
@@ -173,9 +205,9 @@ function Treino() {
                   {treinosFiltrados.map((treino, idx) => (
                     <tr key={idx}>
                       <td>{treino.nome}</td>
-                      <td>{treino.modalidade}</td>
+                      <td>{treino.fundamentos?.join(", ") || "-"}</td>
                       <td>
-                        {treino.participantes?.map((p) => p.nome).join(", ") || "-"}
+                        {treino.participantes?.map((p) => p.nome).filter(Boolean).join(", ") || "-"}
                       </td>
                     </tr>
                   ))}
@@ -185,6 +217,7 @@ function Treino() {
           </Card>
         </Col>
       </Row>
+
     </div>
   );
 }

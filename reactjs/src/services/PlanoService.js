@@ -1,14 +1,16 @@
-import  BaseService  from './base/BaseService';
+import BaseService from "./base/BaseService";
 
-const API_BASE_URL = 'http://harkonen.ia-outsider.com.br/api';
+const API_BASE_URL = "http://harkonen.ia-outsider.com.br/api";
 
 class PlanoService extends BaseService {
   constructor() {
-    super(API_BASE_URL, 'planos');
+    super(API_BASE_URL, "planos"); 
   }
 
-  // findAll já vem do BaseService, mas se quiser pode sobrescrever
-  // create, update, delete também estão herdados
+  findByModalidade(modalidadeId) {
+    return this.api.get(`?modalidade=${modalidadeId}`).then((res) => res.data);
+  }
+
 }
 
-export default new PlanoService();
+export default PlanoService;
