@@ -1,231 +1,191 @@
-/* eslint-disable no-unused-vars */
-
-/* eslint-disable no-undef */
-/*!
-
-=========================================================
-* Paper Dashboard React - v1.3.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-* Licensed under MIT (https://github.com/creativetimofficial/paper-dashboard-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import { useState , useEffect} from "react";
-import React  from "react";
+import React, { useState, useRef } from "react";
 import NotificationAlert from "react-notification-alert";
-import axios from "axios";
+import SelectModalidade from "../components/Select/SelectModalidade";
+import SelectAtletasParticipantes from "../components/Select/SelectAtletasParticipantes";
+import SelectFundamento from "../components/Select/SelectFundamento";
 
-// reactstrap components
 import {
-    Card,
-    CardHeader,
-    CardBody,
-    CardTitle,
-    Row,
-    Col,
-    Form,
-    FormGroup,
-    Input,
-    Button,
-    Label
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Row,
+  Col,
+  Form,
+  FormGroup,
+  Input,
+  Button,
+  Table,
 } from "reactstrap";
 
 function Treino() {
-    const notificationAlert = React.useRef();
-    const notify = (place, color) => {
-      var type;
-      switch (color) {
-        case 1:
-          type = "primary";
-          break;
-        case 2:
-          type = "success";
-          break;
-        case 3:
-          type = "danger";
-          break;
-        case 4:
-          type = "warning";
-          break;
-        case 5:
-          type = "info";
-          break;
-        default:
-          break;
-      }
-      var options = {};
-      options = {
-        place: place,
-        message: (
-          <div>
-            <div>
-                <b>Ó o auÊ aí hein... camabada de cuzão</b> bando de cu de pombo do caraio
-            </div>
-          </div>
-        ),
-        type: type,
-        icon: "nc-icon nc-bell-55",
-        autoDismiss: 7
-      };
-      notificationAlert.current.notificationAlert(options);
+  const notificationAlert = useRef();
+
+  const [formData, setFormData] = useState({
+    nome: "",
+    modalidade: "",
+    fundamentos: [] // corrigido: inicia vazio
+  });
+
+  const [participantes, setParticipantes] = useState([]);
+  const [treinos, setTreinos] = useState([]);
+  const [filtro, setFiltro] = useState("");
+
+  const notify = (place, type, mensagem) => {
+    const types = ["", "primary", "success", "danger", "warning", "info"];
+    const options = {
+      place,
+      message: <div><b>{mensagem}</b></div>,
+      type: types[type],
+      icon: "nc-icon nc-bell-55",
+      autoDismiss: 5,
     };
+    notificationAlert.current.notificationAlert(options);
+  };
 
-    const [modalidades, setModalidades] = useState(null)
-    const [isDataLoaded, setIsDataLoaded] = useState(false);
-   
-      useEffect(() => {
-        const fetchData = async () => {
-          if (isDataLoaded) return; 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-          axios.get('https://localhost:44311/api/services/app/ModalidadeService/GetAll').then(resp => {
-            if(resp.data.result!== null){
-              setIsDataLoaded(true)
-              setModalidades(resp.data.result)
-            }
-        })
-        .catch(err => {
-          notify("tr", 3)
-        }); 
-      }
-        
-      fetchData();
-           
-}, [isDataLoaded]);
-    
-console.log(modalidades);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const treinoFinal = {
+        ...formData,
+        participantes: participantes.map((p) => ({
+          id: p._id,
+          nome: p.nome
+        }))
+      };
 
+      // PlanoService.create(treinoFinal) - placeholder
+      setTreinos((prev) => [...prev, treinoFinal]);
+
+      notify("tr", 2, "Treino cadastrado com sucesso!");
+
+      setFormData({
+        nome: "",
+        modalidade: "",
+        fundamentos: [], // reset limpo
+      });
+      setParticipantes([]);
+    } catch (error) {
+      console.error(error);
+      notify("tr", 3, "Erro ao cadastrar treino.");
+    }
+  };
+
+  const treinosFiltrados = treinos.filter((t) =>
+    t.nome.toLowerCase().includes(filtro.toLowerCase())
+  );
 
   return (
-    <>
-      <div className="content">
+    <div className="content">
       <NotificationAlert ref={notificationAlert} />
-        <Row>
-          <Col md="12">
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h4">Cadastro de  Treino Por Modalidade/Equipe</CardTitle>
-              </CardHeader>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col md="12">
-            <Card>
-              <CardBody>
-              <Form>
-                  <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <label>Nome do Treino</label>
-                        <Input
-                          placeholder="Nome"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="6">
-                      <FormGroup>
-                      <Label for="exampleSelect1">Modalidade</Label>
-                            <Input type="select" name="select" id="exampleSelect1" onChange={() => setModalidade(this.value)}>
-                            <option>Selecione ...</option>
-                            
-                            {
-                              modalidades?.map((item, index) => {     
-                                return <option value={item.id}>{item.nomeModalidade}</option>
-                              })
-                            }
-                              </Input>
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 1</label>
-                        <Input
-                          defaultValue="Fundamento 1"
-                          placeholder="Company"
-                          type="Select"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 2 </label>
-                        <Input
-                          placeholder="Fundamento 2"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 3</label>
-                        <Input
-                            placeholder="Fundamento 3"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 4 </label>
-                        <Input
-                          placeholder="Fundamento 4"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 5</label>
-                        <Input
-                          placeholder="Fundamento 5"
-                          type="Select"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="6">
-                      <FormGroup>
-                        <label>Fundamento 6</label>
-                        <Input
-                          placeholder="Fundamento 6"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <div className="update ml-auto mr-auto">
-                      <Button
-                        className="btn-round"
-                        color="primary"
-                        type="submit"
-                      >
-                        Incluir
-                      </Button>
-                    </div>
-                  </Row>
-                </Form>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-      </div>
-    </>
+
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h4">Cadastro de Treino por Modalidade/Equipe</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <Form onSubmit={handleSubmit}>
+                <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Nome do Treino</label>
+                      <Input
+                        name="nome"
+                        value={formData.nome}
+                        onChange={handleChange}
+                        placeholder="Nome do Treino"
+                        required
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md="6">
+                    <SelectModalidade
+                      value={formData.modalidade}
+                      onChange={(val) =>
+                        setFormData((prev) => ({ ...prev, modalidade: val }))
+                      }
+                    />
+                  </Col>
+                </Row>
+
+                <SelectAtletasParticipantes
+                  modalidadeId={formData.modalidade}
+                  selecionados={participantes}
+                  setSelecionados={setParticipantes}
+                />
+
+                <Row>
+                  <Col md="12">
+                    <SelectFundamento
+                      fundamentos={formData.fundamentos}
+                      onChange={(listaAtualizada) =>
+                        setFormData((prev) => ({ ...prev, fundamentos: listaAtualizada }))
+                      }
+                    />
+                  </Col>
+                </Row>
+
+                <Row>
+                  <div className="update ml-auto mr-auto">
+                    <Button className="btn-round" color="primary" type="submit">
+                      Incluir
+                    </Button>
+                  </div>
+                </Row>
+              </Form>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md="12">
+          <Card>
+            <CardHeader>
+              <CardTitle tag="h5">Treinos Cadastrados</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <FormGroup>
+                <label>Filtrar por nome</label>
+                <Input
+                  type="text"
+                  placeholder="Digite um nome para filtrar"
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                />
+              </FormGroup>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Modalidade</th>
+                    <th>Participantes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {treinosFiltrados.map((treino, idx) => (
+                    <tr key={idx}>
+                      <td>{treino.nome}</td>
+                      <td>{treino.modalidade}</td>
+                      <td>
+                        {treino.participantes?.map((p) => p.nome).join(", ") || "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </CardBody>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 }
 

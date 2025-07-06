@@ -1,188 +1,146 @@
-/* eslint-disable no-unused-vars */
-/*!
-
-=========================================================
-* Paper Dashboard React - v1.3.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-* Licensed under MIT (https://github.com/creativetimofficial/paper-dashboard-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-import React, { useState } from "react";
-
-// reactstrap components
+import React, { useState, useRef, useEffect } from "react";
+import NotificationAlert from "react-notification-alert";
+import AtletaService from "../services/AtletasService";
+import SelectModalidade from "../components/Select/SelectModalidade";
 import {
-    Button,
-    Card,
-    CardHeader,
-    CardBody,
-    CardTitle,
-    FormGroup,
-    Form,
-    Input,
-    Row,
-    Col,
-    Label
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Row,
+  Col,
+  Form,
+  FormGroup,
+  Input,
+  Button,
+  Table,
 } from "reactstrap";
 
-function Tables() {
-  const [modalidade, setModalidade] = useState("")
+function Atleta() {
+  const notificationAlert = useRef();
+
+  const [formData, setFormData] = useState({
+    nome: "",
+    posicaoPreferencial: "",
+    posicaoSecundaria: "",
+    modalidade: "",
+    contatoEmergencia: {
+      nome: "",
+      telefone: ""
+    }
+  });
+
+  const [atletas, setAtletas] = useState([]);
+
+  useEffect(() => {
+    AtletaService.findAll()
+      .then(setAtletas)
+      .catch(() => notify("tr", 4, "Erro ao buscar atletas"));
+  }, []);
+
+  const notify = (place, type, mensagem) => {
+    const types = ["", "primary", "success", "danger", "warning", "info"];
+    const options = {
+      place,
+      message: <div><b>{mensagem}</b></div>,
+      type: types[type],
+      icon: "nc-icon nc-bell-55",
+      autoDismiss: 5,
+    };
+    notificationAlert.current.notificationAlert(options);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name.startsWith("contatoEmergencia.")) {
+      const campo = name.split(".")[1];
+      setFormData(prev => ({
+        ...prev,
+        contatoEmergencia: {
+          ...prev.contatoEmergencia,
+          [campo]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const novoAtleta = await AtletaService.create(formData);
+      notify("tr", 2, "Atleta cadastrado com sucesso!");
+      setAtletas(prev => [...prev, novoAtleta]);
+      setFormData({
+        nome: "",
+        posicaoPreferencial: "",
+        posicaoSecundaria: "",
+        modalidade: "",
+        contatoEmergencia: { nome: "", telefone: "" }
+      });
+    } catch (error) {
+      console.error(error);
+      notify("tr", 3, "Erro ao salvar atleta.");
+    }
+  };
 
   return (
     <>
       <div className="content">
-      <Row>
+        <NotificationAlert ref={notificationAlert} />
+
+        <Row>
           <Col md="12">
             <Card>
               <CardHeader>
-                <CardTitle tag="h4">Cadastro de Atletas</CardTitle>
+                <CardTitle tag="h4">Cadastro de Atleta</CardTitle>
               </CardHeader>
-            </Card>
-          </Col>
-        </Row>
-        <Row>
-          <Col md="12">
-            <Card className="card-user">
               <CardBody>
-                <Form>
+                <Form onSubmit={handleSubmit}>
                   <Row>
-                    <Col className="pr-1" md="4">
+                    <Col md="6">
                       <FormGroup>
-                        <label>Nome do Atleta</label>
+                        <label>Nome</label>
                         <Input
+                          name="nome"
+                          value={formData.nome}
+                          onChange={handleChange}
                           placeholder="Nome"
-                          type="text"
+                          required
                         />
                       </FormGroup>
                     </Col>
-                    <Col className="pm-1" md="4">
+                    <Col md="6">
                       <FormGroup>
-                        <label htmlFor="exampleInputEmail1">
-                          Email
-                        </label>
-                        <Input placeholder="Email" type="email" />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="4">
-                      <FormGroup>
-                        <label htmlFor="exampleInputEmail1">
-                          Telefone
-                        </label>
-                        <Input placeholder="Telefone" type="Telefone" />
+                        <label>Posição Preferencial</label>
+                        <Input
+                          name="posicaoPreferencial"
+                          value={formData.posicaoPreferencial}
+                          onChange={handleChange}
+                          placeholder="Posição Preferencial"
+                        />
                       </FormGroup>
                     </Col>
                   </Row>
                   <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <label>Posicao Preferencial</label>
-                        <Input
-                          placeholder="Posição Preferencial"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="6">
+                    <Col md="6">
                       <FormGroup>
                         <label>Posição Secundária</label>
                         <Input
-                          placeholder="Posicao Secundaria"
-                          type="text"
+                          name="posicaoSecundaria"
+                          value={formData.posicaoSecundaria}
+                          onChange={handleChange}
+                          placeholder="Posição Secundária"
                         />
                       </FormGroup>
                     </Col>
-                  </Row>
-                  <Row>
-                    <Col className="pr-1" md="6">
-                      <FormGroup>
-                        <Label for="exampleSelect1">Modalidade</Label>
-                            <Input type="select" name="select" id="exampleSelect1" onChange={() => setModalidade(this.value)}>
-                            <option>Selecione ...</option>
-                            <option value="1">VolleyBall Quadra</option>
-                            <option value="2">VolleyBall Praia</option>
-                            <option value="3">FuteVolley</option>
-                            <option value="4">Futebol Campo(Soccer)</option>
-                            <option value="5">Futebol Salão(Futsal)</option>
-                            <option value="6">Futebol Americano(Football)</option>
-                            <option value="17">Futebol Americano Sem Contato(Flag Football)</option>
-                            <option value="7">Futebol de 7(Society/Sintético)</option>
-                            <option value="8">Basquete (NBA)</option>
-                            <option value="9">Basquete (FIBA)</option>
-                            <option value="10">Basquete de 3(Street)</option>
-                            <option value="11">Musculação</option>
-                            <option value="12">Funcional</option>
-                            <option value="13">Karate</option>
-                            <option value="14">Taekwondo</option>
-                            <option value="15">Jiu-Jitsu</option>
-                            <option value="16">Volleibinhas de Vila</option>
-                            </Input>
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="3">
-                      <FormGroup>
-                        <label>CPF</label>
-                        <Input
-                          defaultValue="CPF"
-                          placeholder="CPF"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="3">
-                      <FormGroup>
-                        <label>RG</label>
-                        <Input
-                          defaultValue="RG"
-                          placeholder="RG"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md="12">
-                      <FormGroup>
-                        <label>Endereço</label>
-                        <Input
-                          placeholder="Endereço"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col className="pr-1" md="4">
-                      <FormGroup>
-                        <label>Cidade</label>
-                        <Input
-                          placeholder="Cidade"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="px-1" md="4">
-                      <FormGroup>   
-                        <label>Estado</label>
-                        <Input
-                        placeholder="Estado"
-                          type="text"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="pl-1" md="4">
-                      <FormGroup>
-                        <label>CEP</label>
-                        <Input placeholder="CEP" type="number" />
-                      </FormGroup>
+                    <Col md="6">
+                      <SelectModalidade
+                        value={formData.modalidade}
+                        onChange={(val) => setFormData(prev => ({ ...prev, modalidade: val }))}
+                      />
                     </Col>
                   </Row>
                   <Row>
@@ -190,7 +148,10 @@ function Tables() {
                       <FormGroup>
                         <label>Nome do Contato de Emergência</label>
                         <Input
-                            type="Text"
+                          name="contatoEmergencia.nome"
+                          value={formData.contatoEmergencia.nome}
+                          onChange={handleChange}
+                          placeholder="Nome do contato"
                         />
                       </FormGroup>
                     </Col>
@@ -198,29 +159,17 @@ function Tables() {
                       <FormGroup>
                         <label>Telefone do Contato de Emergência</label>
                         <Input
-                            type="Text"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-
-                  <Row>
-                    <Col md="12">
-                      <FormGroup>
-                        <label>Comentários</label>
-                        <Input
-                          type="textarea"
+                          name="contatoEmergencia.telefone"
+                          value={formData.contatoEmergencia.telefone}
+                          onChange={handleChange}
+                          placeholder="Telefone do contato"
                         />
                       </FormGroup>
                     </Col>
                   </Row>
                   <Row>
                     <div className="update ml-auto mr-auto">
-                      <Button
-                        className="btn-round"
-                        color="primary"
-                        type="submit"
-                      >
+                      <Button className="btn-round" color="primary" type="submit">
                         Incluir
                       </Button>
                     </div>
@@ -230,9 +179,41 @@ function Tables() {
             </Card>
           </Col>
         </Row>
+
+        <Row>
+          <Col md="12">
+            <Card>
+              <CardHeader>
+                <CardTitle tag="h5">Atletas Cadastrados</CardTitle>
+              </CardHeader>
+              <CardBody>
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>Posição</th>
+                      <th>Modalidade</th>
+                      <th>Contato Emergência</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {atletas.map((a, idx) => (
+                      <tr key={idx}>
+                        <td>{a.nome}</td>
+                        <td>{a.posicaoPreferencial}</td>
+                        <td>{a.modalidade?.nome || "-"}</td>
+                        <td>{a.contatoEmergencia?.nome} - {a.contatoEmergencia?.telefone}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </>
   );
 }
 
-export default Tables;
+export default Atleta;
