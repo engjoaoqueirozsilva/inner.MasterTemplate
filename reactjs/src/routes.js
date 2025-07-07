@@ -18,7 +18,7 @@
 */
 import Cadastro from "views/Cadastro.js";
 import Atleta from "views/DashAtleta.js";
-import Modalidade from "views/Modalidade.js";
+import Equipe from "views/Equipe";
 import Treino from "views/Treino.js";
 
 
@@ -46,23 +46,23 @@ var routes = [
   },*/
   {
     path: "/Dashboard",
-    name: "Performance",
+    name: "Execução de Treino",
     icon: "nc-icon nc-sound-wave",
     component: Atleta,
     layout: "/admin"
   
   },
   {
-    path: "/Modalidade",
-    name: "Modalidade",
+    path: "/Equipes",
+    name: "Equipes",
     icon: "nc-icon nc-trophy",
-    component: Modalidade,
+    component: Equipe,
     layout: "/admin"
   
   },
   {
     path: "/Treino",
-    name: "Treino",
+    name: "Plano de Treino",
     icon: "nc-icon nc-spaceship",
     component: Treino,
     layout: "/admin"

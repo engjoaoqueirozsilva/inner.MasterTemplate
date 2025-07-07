@@ -17,7 +17,7 @@ import {
   Table,
 } from "reactstrap";
 
-function Modalidade() {
+function Equipe() {
   const notificationAlert = useRef();
 
   const [formData, setFormData] = useState({
@@ -56,7 +56,7 @@ function Modalidade() {
     e.preventDefault();
     try {
       const nova = await ModalidadeService.create(formData);
-      notify("tr", 2, "Modalidade cadastrada com sucesso!");
+      notify("tr", 2, "Equipe cadastrada com sucesso!");
       setModalidades(prev => [...prev, nova]);
       setFormData({
         nome: "",
@@ -78,14 +78,14 @@ function Modalidade() {
           <Col md="12">
             <Card>
               <CardHeader>
-                <CardTitle tag="h4">Cadastro de Modalidade</CardTitle>
+                <CardTitle tag="h4">Cadastro de Equipe</CardTitle>
               </CardHeader>
               <CardBody>
                 <Form onSubmit={handleSubmit}>
                   <Row>
                     <Col md="12">
                       <FormGroup>
-                        <label>Nome da Modalidade</label>
+                        <label>Nome da Equipe</label>
                         <Input
                           name="nome"
                           placeholder="Nome da Modalidade"
@@ -158,7 +158,7 @@ function Modalidade() {
           <Col md="12">
             <Card>
               <CardHeader>
-                <CardTitle tag="h5">Modalidades Cadastradas</CardTitle>
+                <CardTitle tag="h5">Equipes Cadastradas</CardTitle>
               </CardHeader>
               <CardBody>
                 <Table responsive>
@@ -190,4 +190,4 @@ function Modalidade() {
   );
 }
 
-export default Modalidade;
+export default Equipe;

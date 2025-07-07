@@ -3,7 +3,7 @@ import NotificationAlert from "react-notification-alert";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectAtletasParticipantes from "../components/Select/SelectAtletasParticipantes";
 import SelectFundamento from "../components/Select/SelectFundamento";
-import PlanoService from "../services/PlanoService"; // Importando o serviço de Plano
+import PlanoService from "../services/PlanoService";
 
 
 import {
@@ -22,6 +22,7 @@ import {
 
 function Treino() {
   const notificationAlert = useRef();
+  const planoService = new PlanoService();
 
   const [formData, setFormData] = useState({
     nome: "",
@@ -58,15 +59,15 @@ function Treino() {
         participantes: participantes.map((p) => ({
           id: p._id,
           nome: p.nome,
-          posicao: p.posicao,
+          posicao: p.posicaoPreferencial, 
           camisa: p.camisa
-        })),
+        }))
 
       };
 
-      console.log("🔍 Payload enviado:", treinoFinal); // 👈 debug útil
+      console.log("🔍 Payload enviado:", treinoFinal);
 
-      await PlanoService.create(treinoFinal);
+      await planoService.create(treinoFinal);
       setTreinos((prev) => [...prev, treinoFinal]);
 
       notify("tr", 2, "Treino cadastrado com sucesso!");
@@ -83,6 +84,7 @@ function Treino() {
     }
   };
 
+
   useEffect(() => {
     const carregarPlanosPorModalidade = async () => {
       if (!formData.modalidade) {
@@ -91,7 +93,7 @@ function Treino() {
       }
 
       try {
-        const todos = await PlanoService.findAll();
+        const todos = await planoService.findAll();
         const planosFiltrados = todos.filter(
           (p) =>
             p.modalidade === formData.modalidade ||
@@ -120,7 +122,7 @@ function Treino() {
         <Col md="12">
           <Card>
             <CardHeader>
-              <CardTitle tag="h4">Cadastro de Treino por Modalidade/Equipe</CardTitle>
+              <CardTitle tag="h4">Plano de Treino por Equipe</CardTitle>
             </CardHeader>
             <CardBody>
               <Form onSubmit={handleSubmit}>
