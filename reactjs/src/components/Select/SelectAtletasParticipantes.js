@@ -34,6 +34,23 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
     setSelecionados(selecionados.filter((s) => s._id !== id));
   };
 
+  const formatarInfo = (a) => {
+    const posicao = a.posicaoPreferencial?.trim();
+    const camisa = a.camisa?.trim();
+
+    // Se a posição for "Não Aplica", não mostramos nada (nem camisa)
+    if (posicao && posicao.toLowerCase() === "não aplica") {
+      return "";
+    }
+
+    const partes = [];
+
+    if (posicao) partes.push(posicao);
+    if (camisa) partes.push(`#${camisa}`);
+
+    return partes.length ? ` (${partes.join(", ")})` : "";
+  };
+
   return (
     <FormGroup>
       <Label>Atletas Participantes</Label>
@@ -47,12 +64,7 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
                 key={a._id}
                 className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
               >
-                <span>
-                  {a.nome}
-                  {a.posicao || a.camisa
-                    ? ` (${[a.posicao, a.camisa ? `#${a.camisa}` : null].filter(Boolean).join(", ")})`
-                    : ""}
-                </span>
+                <span>{a.nome}{formatarInfo(a)}</span>
                 <Button size="sm" color="success" onClick={() => adicionar(a._id)}>
                   +
                 </Button>
@@ -66,12 +78,7 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
               key={a._id}
               className="d-flex justify-content-between align-items-center border rounded p-2 mb-2"
             >
-              <span>
-                {a.nome}
-                {a.posicao || a.camisa
-                  ? ` (${[a.posicao, a.camisa ? `#${a.camisa}` : null].filter(Boolean).join(", ")})`
-                  : ""}
-              </span>
+              <span>{a.nome}{formatarInfo(a)}</span>
               <Button size="sm" color="danger" onClick={() => remover(a._id)}>
                 ×
               </Button>
