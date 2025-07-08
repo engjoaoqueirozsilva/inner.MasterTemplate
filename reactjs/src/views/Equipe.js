@@ -88,7 +88,7 @@ function Equipe() {
                         <label>Nome da Equipe</label>
                         <Input
                           name="nome"
-                          placeholder="Nome da Modalidade"
+                          placeholder="Nome da Equipe"
                           type="text"
                           value={formData.nome}
                           onChange={handleChange}

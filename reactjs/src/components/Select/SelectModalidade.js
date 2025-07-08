@@ -13,7 +13,7 @@ function SelectModalidade({ value, onChange }) {
 
   return (
     <FormGroup>
-      <Label for="selectModalidade">Modalidade</Label>
+      <Label for="selectModalidade">Equipe</Label>
       <Input
         type="select"
         id="selectModalidade"

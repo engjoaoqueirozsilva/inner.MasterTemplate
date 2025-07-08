@@ -215,7 +215,7 @@ function Atleta() {
                       <th>Nome</th>
                       <th>Posição</th>
                       <th>Camisa</th>
-                      <th>Modalidade</th>
+                      <th>Equipe</th>
                       <th>Contato Emergência</th>
                     </tr>
                   </thead>
