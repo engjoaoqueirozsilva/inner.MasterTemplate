@@ -15,9 +15,9 @@
   padding: 0 12px;
   background: 
     linear-gradient(
-      135deg,
-      rgba(1, 0, 2, 0.8),
-      rgba(64, 12, 84, 0.8)
+      280deg,
+      rgba(1, 17, 55, 0.963),
+      rgba(69, 79, 153, 0.96)
     );
   background-size: cover;
   background-position: center;
@@ -25,7 +25,7 @@
 }
 
 .login-glass {
-  background: rgba(28, 27, 41, 0.8);
+  background: rgba(1, 14, 46, 0.518);
   border-radius: 12px;
   padding: 40px;
   width: 100%;
@@ -39,7 +39,7 @@
 .logo-title {
   font-family: 'Montserrat', sans-serif;
   font-size: 2.5rem;
-  color: #A259FF;
+  color: #3542f9;
   margin-bottom: 20px;
 }
 
@@ -66,7 +66,7 @@ form input {
 
 .login-button {
   height: 40px;
-  background-color: #A259FF;
+  background-color: #37469b;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -76,7 +76,7 @@ form input {
 }
 
 .login-button:hover {
-  background-color: #8F3EEA;
+  background-color: #1426ef;
 }
 
 .login-glass a {

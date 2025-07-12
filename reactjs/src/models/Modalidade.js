@@ -5,6 +5,7 @@ const ModalidadeSchema = new mongoose.Schema({
   responsavelTecnico: String,
   auxiliarTecnico: String,
   observacoes: String,
+  clubeId: { type: String, required: true }
 });
 
 export const ModalidadeModel = mongoose.model("Modalidade", ModalidadeSchema);

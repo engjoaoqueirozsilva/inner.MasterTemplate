@@ -1,14 +1,19 @@
-import  BaseService  from './base/BaseService';
+// src/services/ModalidadeService.js
+import BaseService from "./base/BaseService";
 
-const API_BASE_URL = 'http://harkonen.ia-outsider.com.br/api';
-
-class ModalidadeService extends BaseService {
+class ModalidadeService {
   constructor() {
-    super(API_BASE_URL, 'modalidades');
+    this.service = new BaseService("", "modalidades");
   }
 
-  // findAll já vem do BaseService, mas se quiser pode sobrescrever
-  // create, update, delete também estão herdados
+  async findAll(params = {}) {
+    return await this.service.findAll(params);
+  }
+
+  async create(data) {
+    return await this.service.create(data); // Correto
+  }
+
 }
 
 export default new ModalidadeService();
