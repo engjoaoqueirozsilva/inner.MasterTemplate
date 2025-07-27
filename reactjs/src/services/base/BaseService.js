@@ -10,33 +10,33 @@ class BaseService {
   }
 
   async create(data) {
-    const response = await this.api.post(this.endpoint, data);
+    const response = await axiosInstance.post(this.endpoint, data);
     return response.data;
   }
 
   async findAll(params = {}) {
-    const response = await this.api.get(this.endpoint, { params });
+    const response = await axiosInstance.get(this.endpoint, { params });
     return response.data;
   }
 
   async findById(id) {
-    const response = await this.api.get(`/${id}`);
+    const response = await axiosInstance.get(`/${id}`);
     return response.data;
   }
 
   async update(id, data) {
-    const response = await this.api.put(`/${id}`, data);
+    const response = await axiosInstance.put(`/${id}`, data);
     return response.data;
   }
 
   async delete(id) {
-    const response = await this.api.delete(`/${id}`);
+    const response = await axiosInstance.delete(`/${id}`);
     return response.data;
   }
 
   static async login(email, senha) {
     try {
-      const response = await this.api.post(`${API_BASE_URL}/auth/login`, {
+      const response = await axiosInstance.post(`${API_BASE_URL}/auth/login`, {
         email,
         senha
       }, {
