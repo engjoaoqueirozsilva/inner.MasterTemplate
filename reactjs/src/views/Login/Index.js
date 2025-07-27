@@ -13,11 +13,11 @@ export default function SignIn() {
   const history = useHistory();
   
 
-  const notify = (place, color) => {
+  const notify = (place, color, message) => {
     const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
     const options = {
       place,
-      message: (<b>Usuário Inválido</b>),
+      message: (<b>{message}</b>),
       type,
       icon: "nc-icon nc-bell-55",
       autoDismiss: 7
