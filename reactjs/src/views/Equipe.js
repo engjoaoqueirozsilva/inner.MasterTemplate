@@ -25,14 +25,25 @@ function Equipe() {
     responsavelTecnico: "",
     auxiliarTecnico: "",
     observacoes: "",
+    clubeId:""
   });
 
   const [modalidades, setModalidades] = useState([]);
 
   useEffect(() => {
-    ModalidadeService.findAll()
+    const clubeId = localStorage.getItem("clubeId");
+
+    if (!clubeId) {
+      notify("tr", 4, "Clube não identificado.");
+      return;
+    }
+
+    ModalidadeService.findAll({ clubeId }) // envia como query param: ?clubeId=xxx
       .then(setModalidades)
-      .catch(() => notify("tr", 4, "Erro ao buscar modalidades"));
+      .catch((err) => {
+        notify("tr", 4, "Erro ao buscar modalidades" + err)
+        console.log(err)
+  });
   }, []);
 
   const notify = (place, type, mensagem) => {
@@ -55,6 +66,15 @@ function Equipe() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const clubeId = localStorage.getItem("clubeId");
+
+      if (!clubeId) {
+        notify("tr", 4, "Clube não identificado.");
+        return;
+      }
+
+      formData.clubeId = clubeId;
+      console.log("essa merda", formData)
       const nova = await ModalidadeService.create(formData);
       notify("tr", 2, "Equipe cadastrada com sucesso!");
       setModalidades(prev => [...prev, nova]);
@@ -65,6 +85,7 @@ function Equipe() {
         observacoes: "",
       });
     } catch (error) {
+      console.log("Essa porra", error)
       notify("tr", 3, "Erro ao salvar modalidade.");
     }
   };

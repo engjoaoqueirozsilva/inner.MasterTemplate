@@ -8,7 +8,7 @@ class PlanoService extends BaseService {
   }
 
   findByModalidade(modalidadeId) {
-    return this.api.get(`?modalidade=${modalidadeId}`).then((res) => res.data);
+    return this.api.get(`/planos?modalidade=${modalidadeId}`).then((res) => res.data);
   }
 
 }

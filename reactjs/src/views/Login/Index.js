@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+//import { Link } from 'react-router-dom';
 import NotificationAlert from "react-notification-alert";
 import './Login.css';
+import LoginService from '../../services/base/LoginService.js';
 
 export default function SignIn() {
   const notificationAlert = useRef();
@@ -10,6 +11,7 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [loadingAuth, setLoadingAuth] = useState(false);
   const history = useHistory();
+  
 
   const notify = (place, color) => {
     const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
@@ -27,16 +29,27 @@ export default function SignIn() {
     e.preventDefault();
     setLoadingAuth(true);
 
-    if (email && password) {
-      if (email === 'jk' && password === '1931') {
-        setTimeout(() => {
-          history.push("/admin/Dashboard");
-        }, 900); // tempo para a animação (300ms)
+    if (!email || !password) {
+      notify("tr", 3, "Preencha todos os campos.");
+      setLoadingAuth(false);
+      return;
+    }
+
+    try {
+      const result = await LoginService.login(email, password);
+
+      if (result && result.userId) {
+        localStorage.setItem("userId", result.userId);
+        localStorage.setItem("clubeId", result.clubeId);
+        localStorage.setItem("nome", result.nome);
+        localStorage.setItem("tipo", result.tipo);
+
+        history.push("/admin");
       } else {
-        notify("tr", 3);
+        notify("tr", 3, "Login inválido. Verifique suas credenciais.");
       }
-    } else {
-      alert('Preencha todos os campos.');
+    } catch (err) {
+      notify("tr", 3, err.message);
     }
 
     setLoadingAuth(false);
@@ -64,7 +77,8 @@ export default function SignIn() {
             {loadingAuth ? "Carregando..." : "Acessar"}
           </button>
         </form>
-        <Link to="">Criar uma conta</Link>
+        {/*<Link to="">Criar uma conta</Link>
+        <Link to="">Esqueci minha senha</Link>*/}
       </div>
     </div>
   );
