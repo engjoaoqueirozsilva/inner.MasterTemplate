@@ -7,6 +7,8 @@ class TreinoService extends BaseService {
     super(API_BASE_URL, 'treinos');
   }
 
-  // Métodos adicionais específicos de treino podem ser colocados aqui
+    findByModalidade(modalidadeId) {
+    return this.api.get(`/treinos?modalidade=${modalidadeId}`).then((res) => res.data);
+  }
 }
 export default TreinoService;

@@ -8,7 +8,7 @@ class AtletasService extends BaseService {
   }
 
   findByModalidade(modalidadeId) {
-    return this.api.get(`?modalidade=${modalidadeId}`).then((res) => res.data);
+    return this.api.get(`/atletas?modalidade=${modalidadeId}`).then((res) => res.data);
   }
 
 }

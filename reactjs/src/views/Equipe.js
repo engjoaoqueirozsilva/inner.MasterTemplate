@@ -74,7 +74,6 @@ function Equipe() {
       }
 
       formData.clubeId = clubeId;
-      console.log("essa merda", formData)
       const nova = await ModalidadeService.create(formData);
       notify("tr", 2, "Equipe cadastrada com sucesso!");
       setModalidades(prev => [...prev, nova]);
@@ -85,7 +84,6 @@ function Equipe() {
         observacoes: "",
       });
     } catch (error) {
-      console.log("Essa porra", error)
       notify("tr", 3, "Erro ao salvar modalidade.");
     }
   };
