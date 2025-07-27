@@ -49,7 +49,7 @@ export default function SignIn() {
         notify("tr", 3, "Login inválido. Verifique suas credenciais.");
       }
     } catch (err) {
-      notify("tr", 3, err.message);
+      notify("tr", 3, err.message + "JK");
     }
 
     setLoadingAuth(false);
