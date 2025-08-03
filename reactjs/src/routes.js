@@ -2,6 +2,7 @@ import Cadastro from "views/Cadastro.js";
 import Atleta from "views/DashAtleta.js";
 import Equipe from "views/Equipe";
 import Treino from "views/Treino.js";
+import Performance from "views/Performance.js";
 
 
 var routes = [
@@ -37,7 +38,7 @@ var routes = [
     path: "/Performance",
     name: "Performance",
     icon: "nc-icon nc-align-center",
-    component: Atleta,
+    component: Performance,
     layout: "/admin"
   }
 ];
