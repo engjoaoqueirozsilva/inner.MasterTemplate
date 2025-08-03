@@ -32,6 +32,13 @@ var routes = [
     icon: "nc-icon nc-sound-wave",
     component: Atleta,
     layout: "/admin"
+  },
+  {
+    path: "/Performance",
+    name: "Performance",
+    icon: "nc-icon nc-align-center",
+    component: Atleta,
+    layout: "/admin"
   }
 ];
 export default routes;

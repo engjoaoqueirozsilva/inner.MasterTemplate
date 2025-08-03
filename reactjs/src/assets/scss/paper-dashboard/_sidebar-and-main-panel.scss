@@ -170,10 +170,49 @@
         }
 
         a.logo-normal{
-            display: block;
+              /* Usa flexbox para um alinhamento mais robusto e flexível */
+            display: flex;
+            /* Organiza os itens em coluna: primeiro a imagem, depois o nome */
+            flex-direction: column; 
+            /* Centraliza horizontalmente o conteúdo do contêiner flex */
+            align-items: center; 
+            /* Centraliza verticalmente (não fará diferença com flex-direction: column) */
+            justify-content: center; 
+            
+            /* Centraliza o texto dentro do contêiner */
+            text-align: center;
+            
+            /* Mantém a opacidade original */
             opacity: 1;
-            padding: 11px 0 8px;
+
+            /* Aplica o padding do logo original */
+            padding: 10px 0 5px;
+            
+            /* Inclui a transformação, assumindo que você usa SASS/SCSS */
             @include transform-translate-x(0px);
+            
+            /* Permite que o texto quebre a linha em palavras longas */
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        a.logo-normal-clube-nome{
+                font-size: 12px; 
+                /* Deixa o nome do clube em destaque */
+                font-weight: bold; 
+                /* Reduz o espaçamento entre as linhas para nomes longos */
+                line-height: 1.2; 
+                /* Adiciona um espaçamento do logo */
+                margin-top: 5px;
+                /* Garante que a cor seja legível no fundo escuro */
+                color: #fff;
+                /* Centraliza horizontalmente o conteúdo do contêiner flex */
+            align-items: center; 
+            /* Centraliza verticalmente (não fará diferença com flex-direction: column) */
+            justify-content: center; 
+            
+            /* Centraliza o texto dentro do contêiner */
+            text-align: center;
         }
 
         &:after{

@@ -1,7 +1,7 @@
-import React from "react";
+import React  from "react";
 import { NavLink } from "react-router-dom";
 import { Nav } from "reactstrap";
-// javascript plugin used to create scrollbars on windows
+import  ClubeService  from "../../services/ClubeService";
 import PerfectScrollbar from "perfect-scrollbar";
 
 
@@ -9,6 +9,8 @@ var ps;
 
 function Sidebar(props) {
   const sidebar = React.useRef();
+  const [clube, setClube] = React.useState({});
+  const clubeService = new ClubeService();
   // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
     return props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
@@ -26,6 +28,25 @@ function Sidebar(props) {
       }
     };
   });
+
+  React.useEffect(() => {
+    const clubeId = localStorage.getItem("clubeId");
+
+    if (clubeId) {
+      // CORREÇÃO AQUI:
+      // Agora chamamos o método findById na instância que criamos
+      clubeService.findById(clubeId)
+        .then((res) => {
+          console.log("Clube encontrado:", res);
+          setClube(res);
+        })
+        .catch((err) => {  
+          // É uma boa prática logar o erro completo para depuração
+          console.error("Erro ao buscar clube:", err);
+        });
+      }
+  }, []);
+
   return (
     <div
       className="sidebar"
@@ -33,18 +54,17 @@ function Sidebar(props) {
       data-active-color={props.activeColor}
     >
       <div className="logo">
-        <a
-          href="https://www.creative-tim.com"
-          className="simple-text logo-mini"
-        >
-          <div className="logo-img">
-          </div>
-        </a>
+    
         <a
           href="/admin"
           className="simple-text logo-normal"
         >
-          In-Set PRO
+          In-Set PRO 
+        </a>
+        <a
+          href="/admin"
+          className="simple-text logo-normal-clube-nome">
+          {clube.nome}
         </a>
       </div>
       <div className="sidebar-wrapper" ref={sidebar}>
