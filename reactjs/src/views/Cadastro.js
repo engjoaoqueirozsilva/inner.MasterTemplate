@@ -33,8 +33,17 @@ function Atleta() {
 
   const [atletas, setAtletas] = useState([]);
 
+  
+
   useEffect(() => {
-    AtletaService.findAll()
+    const clubeId = localStorage.getItem("clubeId");
+
+    if (!clubeId) {
+      notify("tr", 4, "Clube não identificado.");
+      return;
+    }
+
+    AtletaService.findAll({ clubeId })
       .then(setAtletas)
       .catch(() => notify("tr", 4, "Erro ao buscar atletas"));
   }, []);

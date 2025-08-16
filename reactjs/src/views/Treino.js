@@ -65,8 +65,6 @@ function Treino() {
 
       };
 
-      console.log("🔍 Payload enviado:", treinoFinal);
-
       await planoService.create(treinoFinal);
       setTreinos((prev) => [...prev, treinoFinal]);
 

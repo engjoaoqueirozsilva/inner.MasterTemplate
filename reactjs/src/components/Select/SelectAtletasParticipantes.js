@@ -12,8 +12,15 @@ function SelectAtletasParticipantes({ modalidadeId, selecionados, setSelecionado
       return;
     }
 
+    const clubeId = localStorage.getItem("clubeId");
+    
+    if (!clubeId) {
+      return;
+    }
+
     AtletaService.findByModalidade(modalidadeId)
       .then((res) => {
+        console.log(res);
         setAtletas(res);
         setSelecionados([]);
       })
