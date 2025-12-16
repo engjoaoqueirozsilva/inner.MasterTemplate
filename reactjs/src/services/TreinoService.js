@@ -1,7 +1,7 @@
 import  BaseService  from './base/BaseService';
 
-//const API_BASE_URL = 'http://harkonen.ia-outsider.com.br/api';
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://harkonen.ia-outsider.com.br/api';
+
 
 class TreinoService extends BaseService {
   constructor() {

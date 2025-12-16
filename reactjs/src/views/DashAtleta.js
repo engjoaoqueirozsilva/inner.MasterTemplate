@@ -172,17 +172,17 @@ function DashAtleta() {
     }, 0);
   });
 
-  const contagemPorNivel = niveis.map((nivel) => {
-    let total = 0;
-    for (const atleta in avaliacoes) {
-      if (!filtroAtleta.includes(atleta)) continue;
-      for (const fundamento in avaliacoes[atleta]) {
-        if (!filtroFundamento.includes(fundamento)) continue;
-        total += avaliacoes[atleta][fundamento].filter((n) => n === nivel).length;
-      }
-    }
-    return total;
-  });
+  // const contagemPorNivel = niveis.map((nivel) => {
+  //   let total = 0;
+  //   for (const atleta in avaliacoes) {
+  //     if (!filtroAtleta.includes(atleta)) continue;
+  //     for (const fundamento in avaliacoes[atleta]) {
+  //       if (!filtroFundamento.includes(fundamento)) continue;
+  //       total += avaliacoes[atleta][fundamento].filter((n) => n === nivel).length;
+  //     }
+  //   }
+  //   return total;
+  // });
 
   return (
     <div className="content">
