@@ -32,6 +32,10 @@ class AtletasService {
     return await this.service.findAll({ modalidade: modalidadeId });
   }
 
+  async create(data) {
+    return await this.service.create(data);
+  }
+
 }
 
 export default new AtletasService();

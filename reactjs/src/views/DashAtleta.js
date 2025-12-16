@@ -136,15 +136,25 @@ function DashAtleta() {
       finalizado: true,
     };
 
+    console.log("📋 Payload do Treino:", treinoPayload);
+
     try {
+
       await treinoService.create(treinoPayload);
+
       alert("✅ Avaliação enviada ao MongoDB!");
+
       console.log("📤 Enviado:", treinoPayload);
+      
       setAvaliacoes({});
+      
       localStorage.removeItem("avaliacoes");
+
     } catch (err) {
       console.error(err);
+
       alert("❌ Erro ao enviar os dados ao MongoDB.");
+      
     }
   };
 

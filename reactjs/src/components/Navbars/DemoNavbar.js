@@ -115,7 +115,7 @@ function Header(props) {
           <span className="navbar-toggler-bar navbar-kebab" />
           <span className="navbar-toggler-bar navbar-kebab" />
         </NavbarToggler>
-        <Collapse isOpen={isOpen} navbar className="justify-content-end">
+        {/* <Collapse isOpen={isOpen} navbar className="justify-content-end">
           <Nav navbar>
             <NavItem>
               <Link to="#pablo" className="nav-link btn-rotate">
@@ -126,7 +126,7 @@ function Header(props) {
               </Link>
             </NavItem>
           </Nav>
-        </Collapse>
+        </Collapse> */}
       </Container>
     </Navbar>
   );
