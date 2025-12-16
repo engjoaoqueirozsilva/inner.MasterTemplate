@@ -125,37 +125,41 @@ function DashAtleta() {
     const treinoPayload = {
       treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
       data: new Date().toISOString(),
-      modalidade: planoSelecionado?.modalidade?.nome || "Indefinido",
+      modalidade: planoSelecionado?.modalidade?._id || planoSelecionado?.modalidade,
+      plano: planoSelecionado?._id,
       responsavel: "Sistema Automático",
       local: "Quadra A",
       atletas: Object.keys(avaliacoes).map((nome) => ({
         nome,
-        avaliacoes: avaliacoes[nome],
+        // ✅ Transforma o objeto de avaliações em array
+        avaliacoes: Object.entries(avaliacoes[nome]).map(([fundamento, conceitos]) => ({
+          fundamento,
+          conceitos
+        }))
       })),
       observacoes: `Treino do plano ${planoSelecionado?.nome || ""}`,
       finalizado: true,
     };
 
-    console.log("📋 Payload do Treino:", treinoPayload);
-
-    console.log("📋 Json do Treino:", JSON.stringify(treinoPayload));
+    console.log("📋 Payload do Treino:", JSON.stringify(treinoPayload, null, 2));
 
     try {
-
       await treinoService.create(treinoPayload);
-
+      
       alert("✅ Avaliação enviada ao MongoDB!");
-
+      
       console.log("📤 Enviado:", treinoPayload);
       
       setAvaliacoes({});
       
       localStorage.removeItem("avaliacoes");
 
-    } catch (err) {
-      console.error(err);
 
-      alert("❌ Erro ao enviar os dados ao MongoDB.");
+    } catch (err) {
+
+      console.error("❌ Erro:", err.response?.data || err);
+
+      alert(`❌ Erro ao enviar: ${err.response?.data?.message || err.message}`);
 
     }
   };
