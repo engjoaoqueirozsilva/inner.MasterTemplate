@@ -138,6 +138,8 @@ function DashAtleta() {
 
     console.log("📋 Payload do Treino:", treinoPayload);
 
+    console.log("📋 Json do Treino:", JSON.stringify(treinoPayload));
+
     try {
 
       await treinoService.create(treinoPayload);
@@ -154,7 +156,7 @@ function DashAtleta() {
       console.error(err);
 
       alert("❌ Erro ao enviar os dados ao MongoDB.");
-      
+
     }
   };
 
