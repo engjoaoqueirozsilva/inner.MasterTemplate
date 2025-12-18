@@ -1,5 +1,44 @@
+# Configuração do Caddy para Single Page Application (React)
+{
+    # Configurações globais
+    auto_https off
+}
+
 :80 {
-  root * /usr/share/caddy
-  file_server
-  try_files {path} {path}/index.html index.html
+    # Diretório raiz onde estão os arquivos do build
+    root * /usr/share/caddy
+    
+    # Serve arquivos estáticos
+    file_server
+    
+    # Configuração crucial para SPA:
+    # Tenta servir o arquivo solicitado, se não existir, retorna index.html
+    try_files {path} /index.html
+    
+    # Encode com gzip e zstd para melhor performance
+    encode gzip zstd
+    
+    # Headers de segurança e performance
+    header {
+        # Remove header Server por segurança
+        -Server
+        
+        # Cache para assets estáticos (JS, CSS, imagens, fontes)
+        @static {
+            path *.js *.css *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+        }
+        Cache-Control "public, max-age=31536000, immutable" @static
+        
+        # Sem cache para index.html
+        @html {
+            path *.html
+        }
+        Cache-Control "no-cache, no-store, must-revalidate" @html
+    }
+    
+    # Log para debug (opcional, pode remover em produção)
+    log {
+        output stdout
+        format console
+    }
 }
