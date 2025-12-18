@@ -4807,3 +4807,26 @@ License - nucleoapp.com/license/
   outline: none; }
 
 /*# sourceMappingURL=paper-dashboard.css.map */
+
+/* Faz o Nav ocupar toda altura disponível e empurra o último item para baixo */
+.sidebar .sidebar-wrapper .nav {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 180px); /* Ajuste conforme necessário */
+}
+
+/* Empurra o item de logout para o final */
+.sidebar .sidebar-wrapper .nav .logout-item {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 10px;
+}
+
+/* Estilização do link de logout */
+.sidebar .logout-item .nav-link {
+  color: #f44336 !important;
+}
+
+.sidebar .logout-item .nav-link:hover {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+}

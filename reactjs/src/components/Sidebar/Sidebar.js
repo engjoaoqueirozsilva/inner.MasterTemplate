@@ -1,9 +1,8 @@
-import React  from "react";
-import { NavLink } from "react-router-dom";
+import React from "react";
+import { NavLink, useHistory } from "react-router-dom";
 import { Nav } from "reactstrap";
-import  ClubeService  from "../../services/ClubeService";
+import ClubeService from "../../services/ClubeService";
 import PerfectScrollbar from "perfect-scrollbar";
-
 
 var ps;
 
@@ -11,10 +10,13 @@ function Sidebar(props) {
   const sidebar = React.useRef();
   const [clube, setClube] = React.useState({});
   const clubeService = new ClubeService();
+  const history = useHistory();
+
   // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
     return props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
   };
+
   React.useEffect(() => {
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(sidebar.current, {
@@ -33,19 +35,27 @@ function Sidebar(props) {
     const clubeId = localStorage.getItem("clubeId");
 
     if (clubeId) {
-      // CORREÇÃO AQUI:
-      // Agora chamamos o método findById na instância que criamos
       clubeService.findById(clubeId)
         .then((res) => {
           console.log("Clube encontrado:", res);
           setClube(res);
         })
-        .catch((err) => {  
-          // É uma boa prática logar o erro completo para depuração
+        .catch((err) => {
           console.error("Erro ao buscar clube:", err);
         });
-      }
+    }
   }, []);
+
+  // Função de logout
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("clubeId");
+    localStorage.removeItem("nome");
+    localStorage.removeItem("tipo");
+    
+    console.log("Logout realizado, redirecionando para login...");
+    history.push("/login");
+  };
 
   return (
     <div
@@ -54,7 +64,6 @@ function Sidebar(props) {
       data-active-color={props.activeColor}
     >
       <div className="logo">
-    
         <a
           href="/admin"
           className="simple-text logo-normal"
@@ -88,6 +97,21 @@ function Sidebar(props) {
               </li>
             );
           })}
+          
+          {/* Botão de Logout */}
+          <li className="logout-item">
+            <a
+              href="#"
+              className="nav-link"
+              onClick={(e) => {
+                e.preventDefault();
+                handleLogout();
+              }}
+            >
+              <i className="nc-icon nc-button-power" />
+              <p>Sair</p>
+            </a>
+          </li>
         </Nav>
       </div>
     </div>

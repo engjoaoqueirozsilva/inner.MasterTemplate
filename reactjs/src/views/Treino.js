@@ -3,7 +3,7 @@ import NotificationAlert from "react-notification-alert";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectAtletasParticipantes from "../components/Select/SelectAtletasParticipantes";
 import SelectFundamento from "../components/Select/SelectFundamento";
-import PlanoService from "../services/PlanoService";
+import PlanoService  from "../services/PlanoService";
 
 
 import {
