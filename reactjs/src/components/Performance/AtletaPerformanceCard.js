@@ -14,7 +14,7 @@ import {
   consolidarGeralAtleta,
   distribuicaoParaChartData,
   getPieChartOptions,
-} from "../../";
+} from "../../utils/performanceDataProcessor";
 
 function AtletaPerformanceCard({ atleta, planoNome }) {
   const [isOpen, setIsOpen] = useState(false);
