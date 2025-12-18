@@ -2,10 +2,13 @@ import React, { useEffect, useState } from "react";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectPlano from "../components/Select/SelectPlano";
 import PlanoService from "../services/PlanoService";
-import { Card, CardBody, Row, Col, FormGroup, Label, Input } from "reactstrap";
+import TreinoService from "../services/TreinoService";
+import PerformanceVisualizacao from "../components/Performance/PerformanceVisualizacao";
+import { Card, CardBody, Row, Col, FormGroup, Label, Input, Spinner } from "reactstrap";
 
 function Performance() {
   const planoService = new PlanoService();
+  const treinoService = new TreinoService();
   
   // Estado para os filtros
   const [modalidade, setModalidade] = useState("");
@@ -16,23 +19,45 @@ function Performance() {
   const [tipoBusca, setTipoBusca] = useState("modalidade");
   
   // Estado para os dados de execução dos treinos
-  const [treinos, setTreinos] = useState([]);
+  const [treinos, setTreinos] = useState(null);
+  
+  // Estado para loading
+  const [loading, setLoading] = useState(false);
   
   // NOVO: Estado para a lista completa de planos (sem filtro por modalidade)
   const [planosCompletos, setPlanosCompletos] = useState([]);
 
+  // Função para calcular primeiro e último dia do mês atual
+  const getPeriodoMesAtual = () => {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = hoje.getMonth();
+    
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    
+    // Formatar para YYYY-MM-DD
+    const formatarData = (data) => {
+      const ano = data.getFullYear();
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const dia = String(data.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    };
+    
+    return {
+      dataInicio: formatarData(primeiroDia),
+      dataFim: formatarData(ultimoDia)
+    };
+  };
+
   // useEffect para carregar os planos quando a modalidade mudar
-  // OU para carregar todos os planos quando a busca for por 'plano'.
   useEffect(() => {
-    // Se a busca for por modalidade, carrega os planos filtrados
     if (tipoBusca === "modalidade" && modalidade) {
       planoService.findByModalidade(modalidade).then((res) => {
         setPlanos(res);
         setPlanoSelecionado(null);
       });
-    }
-    // Se a busca for por plano, carrega todos os planos para o clube
-    else if (tipoBusca === "plano") {
+    } else if (tipoBusca === "plano") {
       planoService.findAll().then((res) => {
         setPlanosCompletos(res);
         setPlanoSelecionado(null);
@@ -44,37 +69,38 @@ function Performance() {
     }
   }, [tipoBusca, modalidade]);
 
-  // useEffect para buscar os dados de execução
+  // useEffect para buscar dados consolidados quando modalidade mudar
   useEffect(() => {
-    const fetchTreinos = async () => {
-      // Evita a chamada da API se não houver um ID selecionado
-      if (tipoBusca === "modalidade" && !modalidade) {
-        return;
+    const fetchConsolidado = async () => {
+      if (tipoBusca === "modalidade" && modalidade) {
+        try {
+          setLoading(true);
+          console.log("🔍 Buscando dados consolidados para modalidade:", modalidade);
+          
+          const periodo = getPeriodoMesAtual();
+          console.log("📅 Período:", periodo);
+          
+          const resultado = await treinoService.getConsolidado({
+            modalidadeId: modalidade,
+            dataInicio: periodo.dataInicio,
+            dataFim: periodo.dataFim
+          });
+          
+          console.log("✅ Dados consolidados recebidos:", resultado);
+          setTreinos(resultado);
+        } catch (error) {
+          console.error("❌ Erro ao buscar dados consolidados:", error);
+          setTreinos(null);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setTreinos(null);
       }
-      if (tipoBusca === "plano" && !planoSelecionado) {
-        return;
-      }
-
-      console.log("Iniciando busca de treinos...");
-      console.log("Tipo de busca:", tipoBusca);
-      
-      let params = {};
-      if (tipoBusca === "modalidade") {
-        params.modalidadeId = modalidade;
-        console.log("Buscando por modalidadeId:", modalidade);
-      } else if (tipoBusca === "plano") {
-        params.planoId = planoSelecionado._id;
-        console.log("Buscando por planoId:", planoSelecionado._id);
-      }
-      
-      // Simulação da chamada da API (você precisará de um TreinoService para isso)
-      // const res = await treinoService.findAll(params);
-      // setTreinos(res);
     };
-
-    fetchTreinos();
-  }, [tipoBusca, modalidade, planoSelecionado]);
-
+    
+    fetchConsolidado();
+  }, [modalidade, tipoBusca]);
 
   // Função para renderizar os seletores dinamicamente
   const renderSelectors = () => {
@@ -103,10 +129,7 @@ function Performance() {
             <Card>
               <CardBody>
                 <SelectPlano
-                  // NOVO: Usa a lista de planos completos, não a filtrada por modalidade
                   planos={planosCompletos} 
-                  // CORREÇÃO: Adiciona a prop modalidadeId, mesmo que vazia,
-                  // para evitar que o componente seja desabilitado
                   modalidadeId={modalidade} 
                   value={planoSelecionado?._id || ""}
                   onChange={(planoId) => {
@@ -128,7 +151,6 @@ function Performance() {
       <Card>
         <CardBody>
           <Row className="mb-3">
-            {/* Seletor principal para definir o tipo de busca */}
             <Col md="12">
               <Card>
                 <CardBody>
@@ -143,6 +165,7 @@ function Performance() {
                         setTipoBusca(e.target.value);
                         setModalidade("");
                         setPlanoSelecionado(null);
+                        setTreinos(null);
                       }}
                     >
                       <option value="modalidade">Equipe / Modalidade</option>
@@ -154,25 +177,28 @@ function Performance() {
             </Col>
           </Row>
           
-          {/* Renderiza o seletor condicionalmente */}
           {renderSelectors()}
           
-          <Row>
-            <Col md="12">
-              <Card>
-                <CardBody>
-                  {treinos.length > 0 ? (
-                    <div>
-                      <h3>Dados de Performance</h3>
-                      <pre>{JSON.stringify(treinos, null, 2)}</pre>
-                    </div>
-                  ) : (
-                    <p>Selecione uma opção para visualizar os dados.</p>
-                  )}
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+          {loading ? (
+            <div className="text-center p-5">
+              <Spinner color="primary" />
+              <p className="mt-3">Carregando dados de performance...</p>
+            </div>
+          ) : treinos ? (
+            <PerformanceVisualizacao dados={treinos} />
+          ) : modalidade ? (
+            <Card>
+              <CardBody className="text-center">
+                <p>Nenhum dado encontrado para o período selecionado.</p>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card>
+              <CardBody className="text-center">
+                <p>Selecione uma equipe/modalidade para visualizar os dados de performance.</p>
+              </CardBody>
+            </Card>
+          )}
         </CardBody>
       </Card>
     </div>
