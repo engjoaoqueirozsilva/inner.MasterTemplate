@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
-//import { Link } from 'react-router-dom';
 import NotificationAlert from "react-notification-alert";
 import './Login.css';
 import LoginService from '../../services/base/LoginService.js';
@@ -12,7 +11,6 @@ export default function SignIn() {
   const [loadingAuth, setLoadingAuth] = useState(false);
   const history = useHistory();
   
-
   const notify = (place, color, message) => {
     const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
     const options = {
@@ -56,30 +54,91 @@ export default function SignIn() {
   }
 
   return (
-    <div className="container-center fade-in">
+    <div className="elegant-login-container">
       <NotificationAlert ref={notificationAlert} />
-      <div className="login-glass">
-        <h1 className="logo-title">IN-SET <span>PRO</span></h1>
-        <form onSubmit={handleSignIn}>
-          <input
-            type="text"
-            placeholder="email@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="********"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button type="submit" className="login-button">
-            {loadingAuth ? "Carregando..." : "Acessar"}
+      
+      {/* Subtle Background Pattern */}
+      <div className="bg-pattern"></div>
+      <div className="bg-gradient"></div>
+      
+      {/* Side Performance Indicator */}
+      <div className="performance-indicator">
+        <div className="indicator-line"></div>
+        <div className="indicator-dots">
+          <span className="dot active"></span>
+          <span className="dot active"></span>
+          <span className="dot"></span>
+        </div>
+      </div>
+
+      {/* Main Login Card */}
+      <div className="login-card-elegant">
+        
+        {/* Header Section */}
+        <div className="login-header">
+          <div className="header-line"></div>
+          <div className="logo-elegant">
+            <h1>IN-SET <span className="pro-text">PRO</span></h1>
+            <p className="subtitle">Performance Management System</p>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <form onSubmit={handleSignIn} className="elegant-form">
+          
+          <div className="form-group">
+            <label className="form-label">E-mail</label>
+            <input
+              type="text"
+              placeholder="seu.email@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-input"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Senha</label>
+            <input
+              type="password"
+              placeholder="••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="form-input"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            className="btn-submit-elegant"
+            disabled={loadingAuth}
+          >
+            {loadingAuth ? (
+              <>
+                <span className="loading-spinner"></span>
+                <span>Autenticando</span>
+              </>
+            ) : (
+              <>
+                <span>Acessar</span>
+                <svg className="btn-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </>
+            )}
           </button>
         </form>
-        {/*<Link to="">Criar uma conta</Link>
-        <Link to="">Esqueci minha senha</Link>*/}
+
+        {/* Footer */}
+        <div className="login-footer">
+          <a href="#" className="footer-link-elegant">Esqueci minha senha</a>
+        </div>
+
+        {/* Bottom Accent */}
+        <div className="bottom-accent"></div>
       </div>
+
+ 
     </div>
   );
 }
