@@ -32,6 +32,12 @@ class TreinoService extends BaseService {
     
     return this.api.get(`/treinos/consolidado${queryString}`).then((res) => res.data);
   }
+
+  getPlanosComExecucao() {
+    return this.api
+      .get("/treinos/planos-com-execucao")
+      .then((res) => res.data);
+  }
 }
 
 export default TreinoService;

@@ -11,10 +11,6 @@ class PlanoService extends BaseService {
     return this.api.get(`/planos?modalidade=${modalidadeId}`).then((res) => res.data);
   }
 
-  // async create(data) {
-  //   return await this.service.create(data);
-  // }
-
 }
 
 export default PlanoService;

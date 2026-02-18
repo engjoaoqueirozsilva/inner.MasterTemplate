@@ -1,14 +1,12 @@
-
-// Arquivo DashAtleta corrigido
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Pie } from "react-chartjs-2";
 import TreinoService from "../services/TreinoService";
 import PlanoService from "../services/PlanoService";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectPlano from "../components/Select/SelectPlano";
 import GraficoPorFundamento from "../components/Charts/GraficoPorFundamento";
-
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import NotificationAlert from "react-notification-alert";
 import {
   Card,
   CardHeader,
@@ -37,8 +35,44 @@ function DashAtleta() {
   const [atletas, setAtletas] = useState([]);
   const [fundamentos, setFundamentos] = useState([]);
 
+  const notificationAlert = useRef();
+
   const niveis = ["A", "B", "C", "D", "E", "F"];
-  const cores = ["warning", "primary", "danger", "success", "default", "warning"];
+  const cores = [
+    "warning",
+    "primary",
+    "danger",
+    "success",
+    "default",
+    "warning",
+  ];
+
+  const [showStartButton, setShowStartButton] = useState(false);
+  const [showCancelButton, setShowCancelButton] = useState(false);
+  const [showEndButton, setShowEndButton] = useState(false);
+  // Modal de confirmação
+  const [modalCancelar, setModalCancelar] = useState(false);
+  const [modalFinalizar, setModalFinalizar] = useState(false);
+
+  // Timer
+  const [timerInicio, setTimerInicio] = useState(null);
+  const notify = (place, color, message) => {
+    const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
+    const options = {
+      place,
+      message: (<b>{message}</b>),
+      type,
+      icon: "nc-icon nc-bell-55",
+      autoDismiss: 7
+    };
+    notificationAlert.current.notificationAlert(options);
+  };
+
+  useEffect(() => {
+    setShowStartButton(true);
+    setShowCancelButton(true);
+    setShowEndButton(true);
+  }, []);
 
   useEffect(() => {
     const salvo = localStorage.getItem("avaliacoes");
@@ -59,8 +93,11 @@ function DashAtleta() {
     });
   }, [modalidade]);
 
+
   const iniciarTreino = (plano) => {
     if (!plano) return;
+
+    setShowStartButton(false);
 
     setPlanoSelecionado(plano);
     setAtletas(plano.participantes.map((p) => p.nome));
@@ -73,6 +110,19 @@ function DashAtleta() {
   };
 
   const cancelarTreino = () => {
+     setModalCancelar(true);
+  };
+
+   const finalizarTreino = () => {
+     setModalFinalizar(true);
+  };
+
+  const confirmarFinalizacao = () => {
+    enviarParaAPI();
+    setModalFinalizar(false);
+  };
+
+  const confirmarCancelamento = () => {
     setModalidade("");
     setPlanos([]);
     setPlanoSelecionado(null);
@@ -81,20 +131,53 @@ function DashAtleta() {
     setFiltroAtleta([]);
     setFiltroFundamento([]);
     setAvaliacoes({});
+    setShowStartButton(true);
+    setShowCancelButton(true);
+    setShowEndButton(true);
+
+    // Resetar timer
+    setTimerInicio(null);
+   
+
     localStorage.removeItem("avaliacoes");
+    setModalCancelar(false);
+  };
+
+  const handleStartTreino = () => {
+    setShowStartButton(true);
+    setShowCancelButton(false);
+    setShowEndButton(false);
+
+    //TODO:Iniciar timer para capturar em que momento do treino cada execução foi feita
+    setTimerInicio(Date.now());
+   
   };
 
   const registrarJogada = (atleta, fundamento, nivel) => {
-    setAvaliacoes((prev) => {
-      const jogadasPrevias = prev[atleta]?.[fundamento] || [];
-      return {
-        ...prev,
-        [atleta]: {
-          ...(prev[atleta] || {}),
-          [fundamento]: [...jogadasPrevias, nivel],
-        },
-      };
-    });
+      const timestampAtual = timerInicio ? Math.floor((Date.now() - timerInicio) / 1000) : 0;
+
+      const treinoEmExec = showStartButton === true;
+      if(treinoEmExec){
+        setAvaliacoes((prev) => {
+        const jogadasPrevias = prev[atleta]?.[fundamento] || [];
+        return {
+          ...prev,
+          [atleta]: {
+            ...(prev[atleta] || {}),
+            [fundamento]: [
+              ...jogadasPrevias, 
+              {
+                nivel,
+                timestamp: timestampAtual
+              }
+            ],
+          },
+        };
+      });
+    }
+    else{      
+      notify("tr", 3, "Inicie o treino para registrar as execuções.");
+    }
   };
 
   const desfazerUltima = (atleta, fundamento) => {
@@ -122,6 +205,9 @@ function DashAtleta() {
   };
 
   const enviarParaAPI = async () => {
+      // Calcular duração total do treino
+    const duracaoTotal = timerInicio ? Math.floor((Date.now() - timerInicio) / 1000) : 0;
+    
     const treinoPayload = {
       treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
       data: new Date().toISOString(),
@@ -129,12 +215,12 @@ function DashAtleta() {
       plano: planoSelecionado?._id,
       responsavel: "Sistema Automático",
       local: "Quadra A",
+      duracaoTreino: duracaoTotal,  // ✅ Adicionar duração
       atletas: Object.keys(avaliacoes).map((nome) => ({
         nome,
-        // ✅ Transforma o objeto de avaliações em array
         avaliacoes: Object.entries(avaliacoes[nome]).map(([fundamento, conceitos]) => ({
           fundamento,
-          conceitos
+          conceitos  // ✅ Agora são objetos {nivel, timestamp}
         }))
       })),
       observacoes: `Treino do plano ${planoSelecionado?.nome || ""}`,
@@ -145,47 +231,112 @@ function DashAtleta() {
 
     try {
       await treinoService.create(treinoPayload);
-      
-      alert("✅ Avaliação enviada ao MongoDB!");
-      
+           
       console.log("📤 Enviado:", treinoPayload);
       
+      // Resetar tudo após envio
       setAvaliacoes({});
-      
+      setModalidade("");
+      setPlanos([]);
+      setPlanoSelecionado(null);
+      setAtletas([]);
+      setFundamentos([]);
+      setFiltroAtleta([]);
+      setFiltroFundamento([]);
+      setAvaliacoes({});
+      setShowStartButton(true);
+      setShowCancelButton(true);
+      setShowEndButton(true);
+
+      // Resetar timer
+      setTimerInicio(null);
+           
       localStorage.removeItem("avaliacoes");
 
-
     } catch (err) {
-
-      console.error("❌ Erro:", err.response?.data || err);
-
-      alert(`❌ Erro ao enviar: ${err.response?.data?.message || err.message}`);
-
+      notify("tr", 3, `❌ Erro ao enviar procure o suporte`);
     }
   };
 
-  const totaisFundamento = fundamentos.map((fundamento) => {
-    if (!filtroFundamento.includes(fundamento)) return 0;
-    return atletas.reduce((acc, atleta) => {
-      if (!filtroAtleta.includes(atleta)) return acc;
-      return acc + (avaliacoes[atleta]?.[fundamento]?.length || 0);
-    }, 0);
-  });
+  const totaisFundamento = useMemo(() => {
+    return fundamentos.map((fundamento) => {
+      if (!filtroFundamento.includes(fundamento)) return 0;
+      return atletas.reduce((acc, atleta) => {
+        if (!filtroAtleta.includes(atleta)) return acc;
+        return acc + (avaliacoes[atleta]?.[fundamento]?.length || 0);
+      }, 0);
+    });
+  }, [fundamentos, filtroFundamento, atletas, filtroAtleta, avaliacoes]);
 
-  // const contagemPorNivel = niveis.map((nivel) => {
-  //   let total = 0;
-  //   for (const atleta in avaliacoes) {
-  //     if (!filtroAtleta.includes(atleta)) continue;
-  //     for (const fundamento in avaliacoes[atleta]) {
-  //       if (!filtroFundamento.includes(fundamento)) continue;
-  //       total += avaliacoes[atleta][fundamento].filter((n) => n === nivel).length;
-  //     }
-  //   }
-  //   return total;
-  // });
+  // Componente separado para o Timer (evita re-renders desnecessários)
+  const TimerDisplay = React.memo(({ timerInicio }) => {
+    const [tempoDecorrido, setTempoDecorrido] = useState(0);
+
+    useEffect(() => {
+      let interval;
+      if (timerInicio) {
+        interval = setInterval(() => {
+          setTempoDecorrido(Math.floor((Date.now() - timerInicio) / 1000));
+        }, 1000);
+      }
+      return () => clearInterval(interval);
+    }, [timerInicio]);
+
+    const formatarTempo = (segundos) => {
+      const horas = Math.floor(segundos / 3600);
+      const minutos = Math.floor((segundos % 3600) / 60);
+      const segs = segundos % 60;
+      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segs).padStart(2, "0")}`;
+    };
+
+    if (!timerInicio) return null;
+
+    return (
+      <div className="text-center mx-3">
+        <small className="text-muted d-block">Tempo de Treino</small>
+        <strong style={{ fontSize: "1.2em", color: "#51cbce" }}>
+          {formatarTempo(tempoDecorrido)}
+        </strong>
+      </div>
+    );
+  });
 
   return (
     <div className="content">
+      <NotificationAlert ref={notificationAlert} />
+      <Modal isOpen={modalCancelar} toggle={() => setModalCancelar(false)}>
+        <ModalHeader toggle={() => setModalCancelar(false)}>
+          Confirmar Cancelamento
+        </ModalHeader>
+        <ModalBody>
+          Tem certeza que deseja cancelar este treino? Todos os dados não salvos
+          serão perdidos.
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => setModalCancelar(false)}>
+            Não
+          </Button>
+          <Button color="danger" onClick={confirmarCancelamento}>
+            Sim, Cancelar
+          </Button>
+        </ModalFooter>
+      </Modal>
+      <Modal isOpen={modalFinalizar} toggle={() => setModalFinalizar(false)}>
+        <ModalHeader toggle={() => setModalFinalizar(false)}>
+          Confirmar Finalização
+        </ModalHeader>
+        <ModalBody>
+          Tem certeza que deseja Finalizar este treino? 
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => setModalFinalizar(false)}>
+            Não
+          </Button>
+          <Button color="danger" onClick={confirmarFinalizacao}>
+            Sim, Finalizar
+          </Button>
+        </ModalFooter>
+      </Modal>
       <Card>
         <CardBody>
           <Row className="mb-3">
@@ -201,12 +352,10 @@ function DashAtleta() {
                   />
                 </CardBody>
               </Card>
-
             </Col>
             <Col md="6">
               <Card>
                 <CardBody>
-
                   <SelectPlano
                     planos={planos}
                     modalidadeId={modalidade}
@@ -222,7 +371,6 @@ function DashAtleta() {
           </Row>
         </CardBody>
       </Card>
-
 
       <Row>
         <Col md="12">
@@ -240,7 +388,7 @@ function DashAtleta() {
                           setFiltroAtleta((prev) =>
                             prev.includes(nome)
                               ? prev.filter((n) => n !== nome)
-                              : [...prev, nome]
+                              : [...prev, nome],
                           )
                         }
                       >
@@ -260,7 +408,7 @@ function DashAtleta() {
                           setFiltroFundamento((prev) =>
                             prev.includes(fund)
                               ? prev.filter((f) => f !== fund)
-                              : [...prev, fund]
+                              : [...prev, fund],
                           )
                         }
                       >
@@ -280,12 +428,31 @@ function DashAtleta() {
           <Card>
             <CardHeader className="d-flex justify-content-between align-items-center">
               <CardTitle tag="h4">Análise de Performance em Treino</CardTitle>
+              <TimerDisplay timerInicio={timerInicio} />
               <div className="d-flex gap-2">
-                <Button size="sm" color="secondary" onClick={cancelarTreino}>
+                <Button
+                  size="sm"
+                  color="secondary"
+                  onClick={cancelarTreino}
+                  hidden={showCancelButton}
+                >
                   Cancelar
                 </Button>
-                <Button size="sm" color="success" onClick={enviarParaAPI}>
+                <Button
+                  size="sm"
+                  color="danger"
+                  onClick={finalizarTreino}
+                  hidden={showEndButton}
+                >
                   Finalizar
+                </Button>
+                <Button
+                  size="sm"
+                  color="success"
+                  onClick={handleStartTreino}
+                  hidden={showStartButton}
+                >
+                  Iniciar
                 </Button>
               </div>
             </CardHeader>
@@ -317,7 +484,8 @@ function DashAtleta() {
                         {fundamentos
                           .filter((f) => filtroFundamento.includes(f))
                           .map((fundamento, idx) => {
-                            const total = avaliacoes[atleta]?.[fundamento]?.length || 0;
+                            const total =
+                              avaliacoes[atleta]?.[fundamento]?.length || 0;
 
                             return (
                               <td key={`${index}-${idx}`}>
@@ -328,13 +496,17 @@ function DashAtleta() {
                                   onClick={registrarJogada}
                                 />
                                 <div className="d-flex justify-content-between align-items-center mt-1 gap-1">
-                                  <small className="text-muted">Total: {total}</small>
+                                  <small className="text-muted">
+                                    Total: {total}
+                                  </small>
                                   <Button
                                     size="sm"
                                     color="danger"
                                     outline
                                     disabled={total === 0}
-                                    onClick={() => desfazerUltima(atleta, fundamento)}
+                                    onClick={() =>
+                                      desfazerUltima(atleta, fundamento)
+                                    }
                                   >
                                     Desfazer
                                   </Button>
@@ -343,7 +515,9 @@ function DashAtleta() {
                                     color="secondary"
                                     outline
                                     disabled={total === 0}
-                                    onClick={() => limparFundamento(atleta, fundamento)}
+                                    onClick={() =>
+                                      limparFundamento(atleta, fundamento)
+                                    }
                                   >
                                     Limpar
                                   </Button>
@@ -399,16 +573,13 @@ function DashAtleta() {
       </Row>
 
       <GraficoPorFundamento
-  fundamentos={fundamentos}
-  filtroFundamento={filtroFundamento}
-  setFiltroFundamento={setFiltroFundamento}
-  atletas={atletas}
-  filtroAtleta={filtroAtleta}
-  avaliacoes={avaliacoes}
-  niveis={niveis}
-/>
-
-
+        fundamentos={fundamentos}
+        filtroFundamento={filtroFundamento} // Importante para o cálculo interno
+        atletas={atletas}
+        filtroAtleta={filtroAtleta}
+        avaliacoes={avaliacoes}
+        niveis={niveis}
+      />
     </div>
   );
 }
