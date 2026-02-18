@@ -2,8 +2,7 @@ import React from "react";
 import { FormGroup, Label, Input } from "reactstrap";
 
 function SelectPlano({ planos = [], value, onChange, modalidadeId }) {
-  console.log("🔍 Renderizando SelectPlano com planos:", planos);
-  console.log("🔍 Modalidade ID recebida:", modalidadeId);
+
   return (
     <FormGroup>
       <Label>Plano de Treino</Label>
@@ -15,7 +14,7 @@ function SelectPlano({ planos = [], value, onChange, modalidadeId }) {
       >
         <option value="">Selecione um plano</option>
         {planos.map((plano) => (
-          console.log("🔍 Renderizando plano:", plano),
+          
           <option key={plano._id} value={plano._id}>
             {plano.nome}
           </option>
