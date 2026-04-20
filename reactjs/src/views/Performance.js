@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import SelectModalidade from "../components/Select/SelectModalidade";
 import SelectPlano from "../components/Select/SelectPlano";
 import PlanoService from "../services/PlanoService";
@@ -13,44 +13,35 @@ import {
   Label,
   Input,
   Spinner,
+  Button,
 } from "reactstrap";
 
 function Performance() {
   const planoService = new PlanoService();
   const treinoService = new TreinoService();
 
-  // Estado para os filtros
   const [modalidade, setModalidade] = useState("");
   const [planos, setPlanos] = useState([]);
   const [planoSelecionado, setPlanoSelecionado] = useState(null);
 
-  // Estado para o tipo de busca: 'modalidade' ou 'plano'
   const [tipoBusca, setTipoBusca] = useState("modalidade");
-
-  // Estado para os dados de execução dos treinos
   const [treinos, setTreinos] = useState(null);
-
-  // Estado para loading
   const [loading, setLoading] = useState(false);
-
-  // NOVO: Estado para a lista completa de planos (sem filtro por modalidade)
   const [planosCompletos, setPlanosCompletos] = useState([]);
 
-  // Função para calcular primeiro e último dia do mês atual
   const getPeriodoMesAtual = () => {
     const hoje = new Date();
     const ano = hoje.getFullYear();
     const mes = hoje.getMonth();
 
-    const primeiroDia = new Date(ano, mes, 1);
+    const primeiroDia = new Date(ano, 0, 1);
     const ultimoDia = new Date(ano, mes + 1, 0);
 
-    // Formatar para YYYY-MM-DD
     const formatarData = (data) => {
-      const ano = data.getFullYear();
-      const mes = String(data.getMonth() + 1).padStart(2, "0");
-      const dia = String(data.getDate()).padStart(2, "0");
-      return `${ano}-${mes}-${dia}`;
+      const y = data.getFullYear();
+      const m = String(data.getMonth() + 1).padStart(2, "0");
+      const d = String(data.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     };
 
     return {
@@ -59,22 +50,18 @@ function Performance() {
     };
   };
 
-  // useEffect para carregar os planos quando a modalidade mudar
   useEffect(() => {
     if (tipoBusca === "modalidade" && modalidade) {
-
-      console.log("🔍 Carregando planos para modalidade:");
       planoService.findByModalidade(modalidade).then((res) => {
-        setPlanos(res);
+        setPlanos(res || []);
         setPlanoSelecionado(null);
       });
     } else if (tipoBusca === "plano") {
-      console.log("🔍 Carregando todos os planos para seleção de plano");
-        treinoService.getPlanosComExecucao().then((res) => {
-          console.log("✅ Planos com execução recebidos:", res);
-          const planosAdaptados = res.map(p => ({
-            _id: p.planoId,
-            nome: p.planoNome,
+      treinoService.getPlanosComExecucao().then((res) => {
+        const planosAdaptados = (res || []).map((p) => ({
+          _id: p.planoId,
+          nome: p.planoNome,
+          modalidade: p.modalidade || null,
         }));
         setPlanosCompletos(planosAdaptados);
         setPlanoSelecionado(null);
@@ -86,20 +73,13 @@ function Performance() {
     }
   }, [tipoBusca, modalidade]);
 
-  // useEffect para buscar dados consolidados quando modalidade mudar
-  // useEffect para buscar dados consolidados quando modalidade mudar
   useEffect(() => {
     const fetchConsolidado = async () => {
       if (tipoBusca === "modalidade" && modalidade) {
         try {
           setLoading(true);
-          console.log(
-            "🔍 Buscando dados consolidados para modalidade:",
-            modalidade,
-          );
 
           const periodo = getPeriodoMesAtual();
-          console.log("📅 Período:", periodo);
 
           const resultado = await treinoService.getConsolidado({
             modalidadeId: modalidade,
@@ -107,16 +87,14 @@ function Performance() {
             dataFim: periodo.dataFim,
           });
 
-          // ✅ Adicionar identificador
           const resultadoComTipo = {
             ...resultado,
             tipoBusca: "modalidade",
           };
 
-          console.log("✅ Dados consolidados recebidos:", resultadoComTipo);
           setTreinos(resultadoComTipo);
         } catch (error) {
-          console.error("❌ Erro ao buscar dados consolidados:", error);
+          console.error("Erro ao buscar dados consolidados:", error);
           setTreinos(null);
         } finally {
           setLoading(false);
@@ -129,21 +107,13 @@ function Performance() {
     fetchConsolidado();
   }, [modalidade, tipoBusca]);
 
-  // useEffect para buscar dados consolidados quando PLANO for selecionado
   useEffect(() => {
     const fetchConsolidadoPorPlano = async () => {
       if (tipoBusca === "plano" && planoSelecionado) {
         try {
           setLoading(true);
-          console.log(
-            "🔍 Buscando dados consolidados para plano:",
-            planoSelecionado._id,
-          );
 
           const periodo = getPeriodoMesAtual();
-          console.log("📅 Período:", periodo);
-
-          // Buscar usando a modalidade do plano selecionado
           const modalidadeDoPlano =
             planoSelecionado.modalidade?._id || planoSelecionado.modalidade;
 
@@ -153,52 +123,38 @@ function Performance() {
             dataFim: periodo.dataFim,
           });
 
-          console.log("📦 Resultado bruto recebido:", resultado);
-
-          // ✅ Verificar se tem dados antes de filtrar
           if (
             !resultado ||
             (!resultado.consolidadoGeral && !resultado.analiseQuartis)
           ) {
-            console.warn("⚠️ Nenhum dado retornado do backend");
             setTreinos(null);
             setLoading(false);
             return;
           }
 
-          // Filtrar apenas o plano selecionado do resultado
           const consolidadoFiltrado =
             resultado.consolidadoGeral?.filter(
-              (p) => p.planoId.toString() === planoSelecionado._id.toString(),
+              (p) => p.planoId?.toString() === planoSelecionado._id?.toString()
             ) || [];
 
           const quartisFiltrado =
             resultado.analiseQuartis?.filter(
-              (p) => p.planoId.toString() === planoSelecionado._id.toString(),
+              (p) => p.planoId?.toString() === planoSelecionado._id?.toString()
             ) || [];
 
-          console.log("🔍 Consolidado filtrado:", consolidadoFiltrado);
-          console.log("🔍 Quartis filtrado:", quartisFiltrado);
-
-          // ✅ Montar resultado final
           const resultadoFiltrado = {
             ...resultado,
             tipoBusca: "plano",
-            planoSelecionado: planoSelecionado,
+            planoSelecionado,
             consolidadoGeral: consolidadoFiltrado,
             analiseQuartis: quartisFiltrado,
-            // ✅ Adicionar flag se tem dados
             temDados:
               consolidadoFiltrado.length > 0 || quartisFiltrado.length > 0,
           };
 
-          console.log("✅ Dados finais a serem exibidos:", resultadoFiltrado);
           setTreinos(resultadoFiltrado);
         } catch (error) {
-          console.error(
-            "❌ Erro ao buscar dados consolidados do plano:",
-            error,
-          );
+          console.error("Erro ao buscar dados consolidados do plano:", error);
           setTreinos(null);
         } finally {
           setLoading(false);
@@ -211,14 +167,33 @@ function Performance() {
     fetchConsolidadoPorPlano();
   }, [planoSelecionado, tipoBusca]);
 
-  // Função para renderizar os seletores dinamicamente
+  const periodoAtual = useMemo(() => getPeriodoMesAtual(), []);
+
+  const totalConsolidado = treinos?.consolidadoGeral?.length || 0;
+  const totalQuartis = treinos?.analiseQuartis?.length || 0;
+  const temDados = totalConsolidado > 0 || totalQuartis > 0;
+
+  const resetBusca = (novoTipo) => {
+    setTipoBusca(novoTipo);
+    setModalidade("");
+    setPlanoSelecionado(null);
+    setTreinos(null);
+  };
+
   const renderSelectors = () => {
     if (tipoBusca === "modalidade") {
       return (
         <Row className="mb-3">
           <Col md="12">
-            <Card>
+            <Card className="perf-filter-card">
               <CardBody>
+                <div className="perf-filter-header">
+                  <h5 className="perf-filter-title">Selecione a equipe/modalidade</h5>
+                  <p className="perf-filter-subtitle">
+                    Veja a consolidação dos treinos executados no período atual.
+                  </p>
+                </div>
+
                 <SelectModalidade
                   value={modalidade}
                   onChange={(val) => {
@@ -231,21 +206,28 @@ function Performance() {
           </Col>
         </Row>
       );
-    } else if (tipoBusca === "plano") {
+    }
+
+    if (tipoBusca === "plano") {
       return (
         <Row className="mb-3">
           <Col md="12">
-            <Card>
+            <Card className="perf-filter-card">
               <CardBody>
+                <div className="perf-filter-header">
+                  <h5 className="perf-filter-title">Selecione o plano de treino</h5>
+                  <p className="perf-filter-subtitle">
+                    Visualize a análise consolidada de um plano específico.
+                  </p>
+                </div>
+
                 <SelectPlano
                   planos={planosCompletos}
                   modalidadeId={modalidade}
                   value={planoSelecionado?._id || ""}
                   onChange={(planoId) => {
-                    const plano = planosCompletos.find(
-                      (p) => p._id === planoId,
-                    );
-                    setPlanoSelecionado(plano);
+                    const plano = planosCompletos.find((p) => p._id === planoId);
+                    setPlanoSelecionado(plano || null);
                   }}
                 />
               </CardBody>
@@ -254,78 +236,139 @@ function Performance() {
         </Row>
       );
     }
+
     return null;
   };
 
   return (
     <div className="content">
-      <Card>
-        <CardBody>
-          <Row className="mb-3">
-            <Col md="12">
-              <Card>
-                <CardBody>
-                  <FormGroup>
-                    <Label for="tipoBusca">Visualizar por:</Label>
-                    <Input
-                      type="select"
-                      name="tipoBusca"
-                      id="tipoBusca"
-                      value={tipoBusca}
-                      onChange={(e) => {
-                        setTipoBusca(e.target.value);
-                        setModalidade("");
-                        setPlanoSelecionado(null);
-                        setTreinos(null);
-                      }}
-                    >
-                      <option value="modalidade">Equipe / Modalidade</option>
-                      <option value="plano">Plano de Treino</option>
-                    </Input>
-                  </FormGroup>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+      <div className="performance-page">
+        <Card className="performance-hero-card">
+          <CardBody>
+            <div className="performance-hero-top">
+              <div>
+                <h2 className="performance-page-title">Central de Performance</h2>
+                <p className="performance-page-subtitle">
+                  Analise a evolução da equipe e transforme execução em decisão
+                  técnica.
+                </p>
+              </div>
 
-          {renderSelectors()}
-
-          {loading ? (
-            <div className="text-center p-5">
-              <Spinner color="primary" />
-              <p className="mt-3">Carregando dados de performance...</p>
+              <div className="performance-period-badge">
+                <span>Período analisado</span>
+                <strong>
+                  {periodoAtual.dataInicio} até {periodoAtual.dataFim}
+                </strong>
+              </div>
             </div>
-          ) : treinos &&
-            (treinos.consolidadoGeral?.length > 0 ||
-              treinos.analiseQuartis?.length > 0) ? (
-            <PerformanceVisualizacao dados={treinos} tipoBusca={tipoBusca} />
-          ) : modalidade || planoSelecionado ? (
-            <Card>
-              <CardBody className="text-center">
-                <p>Nenhum dado encontrado para o período selecionado.</p>
-                <small className="text-muted">
-                  {treinos && (
-                    <>
-                      Consolidado: {treinos.consolidadoGeral?.length || 0} |
-                      Quartis: {treinos.analiseQuartis?.length || 0}
-                    </>
-                  )}
-                </small>
-              </CardBody>
-            </Card>
-          ) : (
-            <Card>
-              <CardBody className="text-center">
-                <p>
-                  {tipoBusca === "modalidade"
-                    ? "Selecione uma equipe/modalidade para visualizar os dados de performance."
-                    : "Selecione um plano de treino para visualizar os dados de performance."}
+
+            <div className="perf-toggle-wrap">
+              <Label className="perf-toggle-label">Visualizar por</Label>
+              <div className="perf-toggle">
+                <Button
+                  type="button"
+                  className={`perf-toggle-btn ${
+                    tipoBusca === "modalidade" ? "active" : ""
+                  }`}
+                  onClick={() => resetBusca("modalidade")}
+                >
+                  Equipe / Modalidade
+                </Button>
+
+                <Button
+                  type="button"
+                  className={`perf-toggle-btn ${
+                    tipoBusca === "plano" ? "active" : ""
+                  }`}
+                  onClick={() => resetBusca("plano")}
+                >
+                  Plano de Treino
+                </Button>
+              </div>
+            </div>
+
+            <Row className="performance-stats-row">
+              <Col md="4">
+                <div className="performance-stat-card">
+                  <span className="performance-stat-label">Tipo de análise</span>
+                  <strong className="performance-stat-value">
+                    {tipoBusca === "modalidade" ? "Equipe" : "Plano"}
+                  </strong>
+                </div>
+              </Col>
+
+              <Col md="4">
+                <div className="performance-stat-card">
+                  <span className="performance-stat-label">Consolidados</span>
+                  <strong className="performance-stat-value">{totalConsolidado}</strong>
+                </div>
+              </Col>
+
+              <Col md="4">
+                <div className="performance-stat-card">
+                  <span className="performance-stat-label">Quartis</span>
+                  <strong className="performance-stat-value">{totalQuartis}</strong>
+                </div>
+              </Col>
+            </Row>
+          </CardBody>
+        </Card>
+
+        {renderSelectors()}
+
+        {loading ? (
+          <Card className="performance-feedback-card">
+            <CardBody className="text-center p-5">
+              <Spinner color="primary" />
+              <p className="mt-3 mb-0">
+                Analisando desempenho e consolidando os dados do período...
+              </p>
+            </CardBody>
+          </Card>
+        ) : temDados ? (
+          <>
+            <Card className="performance-insight-card">
+              <CardBody>
+                <h4 className="performance-insight-title">Resumo da análise</h4>
+                <p className="performance-insight-text">
+                  Foram encontrados <strong>{totalConsolidado}</strong> registros
+                  consolidados e <strong>{totalQuartis}</strong> análises por quartil
+                  para esta visão.
+                </p>
+                <p className="performance-insight-helper">
+                  Use os blocos abaixo para identificar padrões, consistência e
+                  pontos de atenção da equipe.
                 </p>
               </CardBody>
             </Card>
-          )}
-        </CardBody>
-      </Card>
+
+            <PerformanceVisualizacao dados={treinos} tipoBusca={tipoBusca} />
+          </>
+        ) : modalidade || planoSelecionado ? (
+          <Card className="performance-feedback-card">
+            <CardBody className="text-center">
+              <h5 className="mb-2">Sem dados suficientes ainda</h5>
+              <p className="mb-2">
+                Nenhum dado de performance foi encontrado para o período selecionado.
+              </p>
+              <small className="text-muted">
+                Consolidado: {totalConsolidado} | Quartis: {totalQuartis}
+              </small>
+            </CardBody>
+          </Card>
+        ) : (
+          <Card className="performance-feedback-card">
+            <CardBody className="text-center">
+              <h5 className="mb-2">Escolha uma visão para começar</h5>
+              <p className="mb-0">
+                {tipoBusca === "modalidade"
+                  ? "Selecione uma equipe/modalidade para visualizar os dados de performance."
+                  : "Selecione um plano de treino para visualizar os dados de performance."}
+              </p>
+            </CardBody>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

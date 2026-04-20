@@ -5,63 +5,75 @@ import './Login.css';
 import LoginService from '../../services/base/LoginService.js';
 
 export default function SignIn() {
-  const notificationAlert = useRef();
+  const notificationAlert = useRef(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingAuth, setLoadingAuth] = useState(false);
   const history = useHistory();
-  
+
   const notify = (place, color, message) => {
     const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
-    const options = {
-      place,
-      message: (<b>{message}</b>),
-      type,
-      icon: "nc-icon nc-bell-55",
-      autoDismiss: 7
-    };
-    notificationAlert.current.notificationAlert(options);
+
+    if (notificationAlert.current?.notificationAlert) {
+      notificationAlert.current.notificationAlert({
+        place,
+        message: (<div><b>{message}</b></div>),
+        type,
+        icon: "nc-icon nc-bell-55",
+        autoDismiss: 5
+      });
+    } else {
+      console.warn("NotificationAlert não está disponível.");
+    }
   };
 
   async function handleSignIn(e) {
     e.preventDefault();
-    setLoadingAuth(true);
+
+    if (loadingAuth) return;
 
     if (!email || !password) {
       notify("tr", 3, "Preencha todos os campos.");
-      setLoadingAuth(false);
       return;
     }
 
+    setLoadingAuth(true);
+
     try {
-      const result = await LoginService.login(email, password);
+      const response = await LoginService.login(email, password);
+      const result = response?.data || response;
+
+      console.log("Resposta login:", result);
 
       if (result && result.userId) {
         localStorage.setItem("userId", result.userId);
-        localStorage.setItem("clubeId", result.clubeId);
-        localStorage.setItem("nome", result.nome);
-        localStorage.setItem("tipo", result.tipo);
+        localStorage.setItem("clubeId", result.clubeId || "");
+        localStorage.setItem("nome", result.nome || "");
+        localStorage.setItem("tipo", result.tipo || "");
 
-        history.push("/admin");
+        notify("tr", 2, "Login realizado com sucesso!");
+
+        setTimeout(() => {
+          history.push("/admin");
+        }, 300);
       } else {
         notify("tr", 3, "Login inválido. Verifique suas credenciais.");
       }
     } catch (err) {
-      notify("tr", 3, err.message);
+      console.error("Erro no login:", err);
+      notify("tr", 3, err?.message || "Erro ao autenticar.");
+    } finally {
+      setLoadingAuth(false);
     }
-
-    setLoadingAuth(false);
   }
 
   return (
     <div className="elegant-login-container">
       <NotificationAlert ref={notificationAlert} />
-      
-      {/* Subtle Background Pattern */}
+
       <div className="bg-pattern"></div>
       <div className="bg-gradient"></div>
-      
-      {/* Side Performance Indicator */}
+
       <div className="performance-indicator">
         <div className="indicator-line"></div>
         <div className="indicator-dots">
@@ -71,10 +83,7 @@ export default function SignIn() {
         </div>
       </div>
 
-      {/* Main Login Card */}
       <div className="login-card-elegant">
-        
-        {/* Header Section */}
         <div className="login-header">
           <div className="header-line"></div>
           <div className="logo-elegant">
@@ -83,9 +92,7 @@ export default function SignIn() {
           </div>
         </div>
 
-        {/* Form Section */}
         <form onSubmit={handleSignIn} className="elegant-form">
-          
           <div className="form-group">
             <label className="form-label">E-mail</label>
             <input
@@ -108,8 +115,8 @@ export default function SignIn() {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn-submit-elegant"
             disabled={loadingAuth}
           >
@@ -129,16 +136,14 @@ export default function SignIn() {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="login-footer">
-          <a href="#" className="footer-link-elegant">Esqueci minha senha</a>
+          <a href="/" className="footer-link-elegant" onClick={(e) => e.preventDefault()}>
+            Esqueci minha senha
+          </a>
         </div>
 
-        {/* Bottom Accent */}
         <div className="bottom-accent"></div>
       </div>
-
- 
     </div>
   );
 }

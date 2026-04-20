@@ -1,31 +1,11 @@
-/*!
-
-=========================================================
-* Paper Dashboard React - v1.3.1
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/paper-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-* Licensed under MIT (https://github.com/creativetimofficial/paper-dashboard-react/blob/main/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
-  Collapse,
   Navbar,
   NavbarToggler,
   NavbarBrand,
-  Nav,
-  NavItem,
-  Container
+  Container,
+  Button
 } from "reactstrap";
 
 import routes from "routes.js";
@@ -35,6 +15,7 @@ function Header(props) {
   const [color, setColor] = React.useState("transparent");
   const sidebarToggle = React.useRef();
   const location = useLocation();
+
   const toggle = () => {
     if (isOpen) {
       setColor("transparent");
@@ -45,20 +26,25 @@ function Header(props) {
   };
 
   const getBrand = () => {
-    let brandName = "Treine como se a sua vida dependesse disso, Vença como se fosse a única coisa que importa.";
-    routes.map((prop, key) => {
+    let brandName =
+      "Treine como se a sua vida dependesse disso, vença como se fosse a única coisa que importa.";
+
+    routes.forEach((prop) => {
       if (window.location.href.indexOf(prop.layout + prop.path) !== -1) {
         brandName = prop.name;
       }
-      return null;
     });
+
     return brandName;
   };
-  const openSidebar = () => {
+
+  const openSidebarMobile = () => {
     document.documentElement.classList.toggle("nav-open");
-    sidebarToggle.current.classList.toggle("toggled");
+    if (sidebarToggle.current) {
+      sidebarToggle.current.classList.toggle("toggled");
+    }
   };
-  // function that adds color dark/transparent to the navbar on resize (this is for the collapse)
+
   const updateColor = () => {
     if (window.innerWidth < 993 && isOpen) {
       setColor("dark");
@@ -66,20 +52,27 @@ function Header(props) {
       setColor("transparent");
     }
   };
+
   React.useEffect(() => {
-    window.addEventListener("resize", updateColor.bind(this));
-  });
+    window.addEventListener("resize", updateColor);
+    return () => {
+      window.removeEventListener("resize", updateColor);
+    };
+  }, [isOpen]);
+
   React.useEffect(() => {
     if (
       window.innerWidth < 993 &&
       document.documentElement.className.indexOf("nav-open") !== -1
     ) {
       document.documentElement.classList.toggle("nav-open");
-      sidebarToggle.current.classList.toggle("toggled");
+      if (sidebarToggle.current) {
+        sidebarToggle.current.classList.toggle("toggled");
+      }
     }
   }, [location]);
+
   return (
-    // add or remove classes depending if we are on full-screen-maps page or not
     <Navbar
       color={
         props.location.pathname.indexOf("full-screen-maps") !== -1
@@ -95,38 +88,43 @@ function Header(props) {
       }
     >
       <Container fluid>
-        <div className="navbar-wrapper">
-          <div className="navbar-toggle">
+        <div className="navbar-wrapper d-flex align-items-center">
+          {/* Toggle mobile padrão */}
+          <div className="navbar-toggle d-lg-none">
             <button
               type="button"
               ref={sidebarToggle}
               className="navbar-toggler"
-              onClick={() => openSidebar()}
+              onClick={openSidebarMobile}
             >
               <span className="navbar-toggler-bar bar1" />
               <span className="navbar-toggler-bar bar2" />
               <span className="navbar-toggler-bar bar3" />
             </button>
           </div>
-          <NavbarBrand href="/">{getBrand()}</NavbarBrand>
+
+          {/* Toggle desktop para recolher/expandir sidebar */}
+          <Button
+            type="button"
+            color="default"
+            className="btn-icon btn-round sidebar-toggle-btn d-none d-lg-inline-flex mr-3"
+            onClick={props.toggleSidebar}
+          >
+            <i
+              className={`nc-icon ${
+                props.sidebarOpen ? "nc-minimal-left" : "nc-minimal-right"
+              }`}
+            />
+          </Button>
+
+          <NavbarBrand href="/admin">{getBrand()}</NavbarBrand>
         </div>
+
         <NavbarToggler onClick={toggle}>
           <span className="navbar-toggler-bar navbar-kebab" />
           <span className="navbar-toggler-bar navbar-kebab" />
           <span className="navbar-toggler-bar navbar-kebab" />
         </NavbarToggler>
-        {/* <Collapse isOpen={isOpen} navbar className="justify-content-end">
-          <Nav navbar>
-            <NavItem>
-              <Link to="#pablo" className="nav-link btn-rotate">
-                <i className="nc-icon nc-settings-gear-65" />
-                <p>
-                  <span className="d-lg-none d-md-block">Account</span>
-                </p>
-              </Link>
-            </NavItem>
-          </Nav>
-        </Collapse> */}
       </Container>
     </Navbar>
   );

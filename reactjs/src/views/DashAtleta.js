@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardBody,
   CardTitle,
-  Table,
   Row,
   Col,
   Button,
@@ -50,20 +49,23 @@ function DashAtleta() {
   const [showStartButton, setShowStartButton] = useState(false);
   const [showCancelButton, setShowCancelButton] = useState(false);
   const [showEndButton, setShowEndButton] = useState(false);
-  // Modal de confirmação
+
   const [modalCancelar, setModalCancelar] = useState(false);
   const [modalFinalizar, setModalFinalizar] = useState(false);
 
-  // Timer
   const [timerInicio, setTimerInicio] = useState(null);
+
+  const treinoEmExecucao = showStartButton === true;
+
   const notify = (place, color, message) => {
-    const type = ["", "primary", "success", "danger", "warning", "info"][color] || "info";
+    const type =
+      ["", "primary", "success", "danger", "warning", "info"][color] || "info";
     const options = {
       place,
-      message: (<b>{message}</b>),
+      message: <b>{message}</b>,
       type,
       icon: "nc-icon nc-bell-55",
-      autoDismiss: 7
+      autoDismiss: 7,
     };
     notificationAlert.current.notificationAlert(options);
   };
@@ -88,11 +90,11 @@ function DashAtleta() {
       setPlanos([]);
       return;
     }
+
     planoService.findByModalidade(modalidade).then((res) => {
       setPlanos(res);
     });
   }, [modalidade]);
-
 
   const iniciarTreino = (plano) => {
     if (!plano) return;
@@ -110,11 +112,11 @@ function DashAtleta() {
   };
 
   const cancelarTreino = () => {
-     setModalCancelar(true);
+    setModalCancelar(true);
   };
 
-   const finalizarTreino = () => {
-     setModalFinalizar(true);
+  const finalizarTreino = () => {
+    setModalFinalizar(true);
   };
 
   const confirmarFinalizacao = () => {
@@ -134,11 +136,7 @@ function DashAtleta() {
     setShowStartButton(true);
     setShowCancelButton(true);
     setShowEndButton(true);
-
-    // Resetar timer
     setTimerInicio(null);
-   
-
     localStorage.removeItem("avaliacoes");
     setModalCancelar(false);
   };
@@ -147,35 +145,33 @@ function DashAtleta() {
     setShowStartButton(true);
     setShowCancelButton(false);
     setShowEndButton(false);
-
-    //TODO:Iniciar timer para capturar em que momento do treino cada execução foi feita
     setTimerInicio(Date.now());
-   
   };
 
   const registrarJogada = (atleta, fundamento, nivel) => {
-      const timestampAtual = timerInicio ? Math.floor((Date.now() - timerInicio) / 1000) : 0;
+    const timestampAtual = timerInicio
+      ? Math.floor((Date.now() - timerInicio) / 1000)
+      : 0;
 
-      const treinoEmExec = showStartButton === true;
-      if(treinoEmExec){
-        setAvaliacoes((prev) => {
+    const treinoEmExec = showStartButton === true;
+    if (treinoEmExec) {
+      setAvaliacoes((prev) => {
         const jogadasPrevias = prev[atleta]?.[fundamento] || [];
         return {
           ...prev,
           [atleta]: {
             ...(prev[atleta] || {}),
             [fundamento]: [
-              ...jogadasPrevias, 
+              ...jogadasPrevias,
               {
                 nivel,
-                timestamp: timestampAtual
-              }
+                timestamp: timestampAtual,
+              },
             ],
           },
         };
       });
-    }
-    else{      
+    } else {
       notify("tr", 3, "Inicie o treino para registrar as execuções.");
     }
   };
@@ -205,9 +201,10 @@ function DashAtleta() {
   };
 
   const enviarParaAPI = async () => {
-      // Calcular duração total do treino
-    const duracaoTotal = timerInicio ? Math.floor((Date.now() - timerInicio) / 1000) : 0;
-    
+    const duracaoTotal = timerInicio
+      ? Math.floor((Date.now() - timerInicio) / 1000)
+      : 0;
+
     const treinoPayload = {
       treinoId: `TREINO-${Math.floor(Math.random() * 1000)}`,
       data: new Date().toISOString(),
@@ -215,13 +212,15 @@ function DashAtleta() {
       plano: planoSelecionado?._id,
       responsavel: "Sistema Automático",
       local: "Quadra A",
-      duracaoTreino: duracaoTotal,  // ✅ Adicionar duração
+      duracaoTreino: duracaoTotal,
       atletas: Object.keys(avaliacoes).map((nome) => ({
         nome,
-        avaliacoes: Object.entries(avaliacoes[nome]).map(([fundamento, conceitos]) => ({
-          fundamento,
-          conceitos  // ✅ Agora são objetos {nivel, timestamp}
-        }))
+        avaliacoes: Object.entries(avaliacoes[nome]).map(
+          ([fundamento, conceitos]) => ({
+            fundamento,
+            conceitos,
+          })
+        ),
       })),
       observacoes: `Treino do plano ${planoSelecionado?.nome || ""}`,
       finalizado: true,
@@ -231,10 +230,9 @@ function DashAtleta() {
 
     try {
       await treinoService.create(treinoPayload);
-           
+
       console.log("📤 Enviado:", treinoPayload);
-      
-      // Resetar tudo após envio
+
       setAvaliacoes({});
       setModalidade("");
       setPlanos([]);
@@ -247,12 +245,9 @@ function DashAtleta() {
       setShowStartButton(true);
       setShowCancelButton(true);
       setShowEndButton(true);
-
-      // Resetar timer
       setTimerInicio(null);
-           
-      localStorage.removeItem("avaliacoes");
 
+      localStorage.removeItem("avaliacoes");
     } catch (err) {
       notify("tr", 3, `❌ Erro ao enviar procure o suporte`);
     }
@@ -268,7 +263,24 @@ function DashAtleta() {
     });
   }, [fundamentos, filtroFundamento, atletas, filtroAtleta, avaliacoes]);
 
-  // Componente separado para o Timer (evita re-renders desnecessários)
+  const totalGeral = useMemo(() => {
+    return atletas.reduce((accAtleta, atleta) => {
+      if (!filtroAtleta.includes(atleta)) return accAtleta;
+
+      const totalAtleta = fundamentos.reduce((accFund, fundamento) => {
+        if (!filtroFundamento.includes(fundamento)) return accFund;
+        return accFund + (avaliacoes[atleta]?.[fundamento]?.length || 0);
+      }, 0);
+
+      return accAtleta + totalAtleta;
+    }, 0);
+  }, [atletas, fundamentos, filtroAtleta, filtroFundamento, avaliacoes]);
+
+  const totalAtletasVisiveis = atletas.filter((a) => filtroAtleta.includes(a)).length;
+  const totalFundamentosVisiveis = fundamentos.filter((f) =>
+    filtroFundamento.includes(f)
+  ).length;
+
   const TimerDisplay = React.memo(({ timerInicio }) => {
     const [tempoDecorrido, setTempoDecorrido] = useState(0);
 
@@ -286,17 +298,25 @@ function DashAtleta() {
       const horas = Math.floor(segundos / 3600);
       const minutos = Math.floor((segundos % 3600) / 60);
       const segs = segundos % 60;
-      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segs).padStart(2, "0")}`;
+      return `${String(horas).padStart(2, "0")}:${String(minutos).padStart(
+        2,
+        "0"
+      )}:${String(segs).padStart(2, "0")}`;
     };
 
-    if (!timerInicio) return null;
+    if (!timerInicio) {
+      return (
+        <div className="execution-timer-box">
+          <span className="execution-timer-label">Tempo de treino</span>
+          <div className="execution-timer-value">00:00:00</div>
+        </div>
+      );
+    }
 
     return (
-      <div className="text-center mx-3">
-        <small className="text-muted d-block">Tempo de Treino</small>
-        <strong style={{ fontSize: "1.2em", color: "#51cbce" }}>
-          {formatarTempo(tempoDecorrido)}
-        </strong>
+      <div className="execution-timer-box">
+        <span className="execution-timer-label">Tempo de treino</span>
+        <div className="execution-timer-value">{formatarTempo(tempoDecorrido)}</div>
       </div>
     );
   });
@@ -304,13 +324,13 @@ function DashAtleta() {
   return (
     <div className="content">
       <NotificationAlert ref={notificationAlert} />
+
       <Modal isOpen={modalCancelar} toggle={() => setModalCancelar(false)}>
         <ModalHeader toggle={() => setModalCancelar(false)}>
           Confirmar Cancelamento
         </ModalHeader>
         <ModalBody>
-          Tem certeza que deseja cancelar este treino? Todos os dados não salvos
-          serão perdidos.
+          Tem certeza que deseja cancelar este treino? Todos os dados não salvos serão perdidos.
         </ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={() => setModalCancelar(false)}>
@@ -321,13 +341,12 @@ function DashAtleta() {
           </Button>
         </ModalFooter>
       </Modal>
+
       <Modal isOpen={modalFinalizar} toggle={() => setModalFinalizar(false)}>
         <ModalHeader toggle={() => setModalFinalizar(false)}>
           Confirmar Finalização
         </ModalHeader>
-        <ModalBody>
-          Tem certeza que deseja Finalizar este treino? 
-        </ModalBody>
+        <ModalBody>Tem certeza que deseja Finalizar este treino?</ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={() => setModalFinalizar(false)}>
             Não
@@ -337,150 +356,189 @@ function DashAtleta() {
           </Button>
         </ModalFooter>
       </Modal>
-      <Card>
-        <CardBody>
-          <Row className="mb-3">
-            <Col md="6">
-              <Card>
-                <CardBody>
-                  <SelectModalidade
-                    value={modalidade}
-                    onChange={(val) => {
-                      setModalidade(val);
-                      setPlanoSelecionado(null);
-                    }}
-                  />
-                </CardBody>
-              </Card>
-            </Col>
-            <Col md="6">
-              <Card>
-                <CardBody>
-                  <SelectPlano
-                    planos={planos}
-                    modalidadeId={modalidade}
-                    value={planoSelecionado?._id || ""}
-                    onChange={(planoId) => {
-                      const plano = planos.find((p) => p._id === planoId);
-                      if (plano) iniciarTreino(plano);
-                    }}
-                  />
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        </CardBody>
-      </Card>
 
-      <Row>
-        <Col md="12">
-          <Card>
+      <div className="execution-page">
+        <Card className="execution-hero-card">
+          <CardBody>
+            <h2 className="execution-page-title">Execução de Treino</h2>
+            <p className="execution-page-subtitle">
+              Selecione a equipe, carregue o plano e registre as execuções dos atletas com mais clareza e velocidade.
+            </p>
+
+            <div className="execution-hero-grid">
+              <div className="execution-hero-field">
+                <span className="execution-hero-field-label">Equipe</span>
+                <SelectModalidade
+                  value={modalidade}
+                  onChange={(val) => {
+                    setModalidade(val);
+                    setPlanoSelecionado(null);
+                  }}
+                />
+              </div>
+
+              <div className="execution-hero-field">
+                <span className="execution-hero-field-label">Plano de treino</span>
+                <SelectPlano
+                  planos={planos}
+                  modalidadeId={modalidade}
+                  value={planoSelecionado?._id || ""}
+                  onChange={(planoId) => {
+                    const plano = planos.find((p) => p._id === planoId);
+                    if (plano) iniciarTreino(plano);
+                  }}
+                />
+              </div>
+
+              <div className="execution-hero-action">
+                <div className="execution-status-wrap">
+                  <div
+                    className={`execution-status-badge ${
+                      treinoEmExecucao ? "is-running" : "is-waiting"
+                    }`}
+                  >
+                    {treinoEmExecucao ? "Treino em andamento" : "Treino aguardando início"}
+                  </div>
+                  <TimerDisplay timerInicio={timerInicio} />
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="execution-filters-card">
+          <CardBody>
+            <div className="execution-filters-header">
+              <h4 className="execution-section-title">Filtros ativos</h4>
+              <p className="execution-section-subtitle">
+                Refine a visualização por atleta e fundamento para acelerar o registro da sessão.
+              </p>
+            </div>
+
+            <div className="execution-filter-block">
+              <span className="execution-filter-label">Atletas</span>
+              <div className="execution-chips">
+                {atletas.map((nome, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`execution-chip ${
+                      filtroAtleta.includes(nome) ? "is-active" : ""
+                    }`}
+                    onClick={() =>
+                      setFiltroAtleta((prev) =>
+                        prev.includes(nome)
+                          ? prev.filter((n) => n !== nome)
+                          : [...prev, nome]
+                      )
+                    }
+                  >
+                    {nome}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="execution-filter-block">
+              <span className="execution-filter-label">Fundamentos</span>
+              <div className="execution-chips">
+                {fundamentos.map((fund, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`execution-chip ${
+                      filtroFundamento.includes(fund) ? "is-active" : ""
+                    }`}
+                    onClick={() =>
+                      setFiltroFundamento((prev) =>
+                        prev.includes(fund)
+                          ? prev.filter((f) => f !== fund)
+                          : [...prev, fund]
+                      )
+                    }
+                  >
+                    {fund}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="execution-actions-card">
+          <CardBody>
+            <div className="execution-actions-left">
+              <h3 className="execution-actions-title">Registro de Performance</h3>
+              <p className="execution-actions-subtitle">
+                {totalAtletasVisiveis} atleta(s) visível(is), {totalFundamentosVisiveis} fundamento(s) ativo(s) e {totalGeral} execução(ões) registrada(s).
+              </p>
+            </div>
+
+            <div className="execution-actions-right">
+              <Button
+                color="secondary"
+                onClick={cancelarTreino}
+                hidden={showCancelButton}
+                className="execution-btn-secondary"
+              >
+                Cancelar treino
+              </Button>
+
+              <Button
+                color="danger"
+                onClick={finalizarTreino}
+                hidden={showEndButton}
+                className="execution-btn-danger"
+              >
+                Finalizar treino
+              </Button>
+
+              <Button
+                color="success"
+                onClick={handleStartTreino}
+                hidden={showStartButton}
+                className="execution-btn-primary"
+              >
+                Iniciar treino
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+
+        {atletas.filter((a) => filtroAtleta.includes(a)).length === 0 ||
+        fundamentos.filter((f) => filtroFundamento.includes(f)).length === 0 ? (
+          <Card className="execution-athlete-card">
             <CardBody>
-              <Row>
-                <Col md="6" className="filtro-bloco">
-                  <div className="filtro-titulo">Filtrar por Atletas:</div>
-                  <div className="filtro-container">
-                    {atletas.map((nome, i) => (
-                      <div
-                        key={i}
-                        className={`filtro-botao ${filtroAtleta.includes(nome) ? "ativo" : ""}`}
-                        onClick={() =>
-                          setFiltroAtleta((prev) =>
-                            prev.includes(nome)
-                              ? prev.filter((n) => n !== nome)
-                              : [...prev, nome],
-                          )
-                        }
-                      >
-                        {nome}
-                      </div>
-                    ))}
-                  </div>
-                </Col>
-                <Col md="6" className="filtro-bloco">
-                  <div className="filtro-titulo">Filtrar por Fundamentos:</div>
-                  <div className="filtro-container">
-                    {fundamentos.map((fund, i) => (
-                      <div
-                        key={i}
-                        className={`filtro-botao ${filtroFundamento.includes(fund) ? "ativo" : ""}`}
-                        onClick={() =>
-                          setFiltroFundamento((prev) =>
-                            prev.includes(fund)
-                              ? prev.filter((f) => f !== fund)
-                              : [...prev, fund],
-                          )
-                        }
-                      >
-                        {fund}
-                      </div>
-                    ))}
-                  </div>
-                </Col>
-              </Row>
+              <div className="execution-empty">
+                <h5 className="execution-empty-title">Nada para exibir no momento</h5>
+                <p className="execution-empty-text">
+                  Selecione ao menos um atleta e um fundamento para começar a registrar as execuções.
+                </p>
+              </div>
             </CardBody>
           </Card>
-        </Col>
-      </Row>
+        ) : (
+          <div className="execution-athletes-grid">
+            {atletas
+              .filter((a) => filtroAtleta.includes(a))
+              .map((atleta, index) => {
+                const totalAtleta = fundamentos
+                  .filter((f) => filtroFundamento.includes(f))
+                  .reduce((acc, fundamento) => {
+                    return acc + (avaliacoes[atleta]?.[fundamento]?.length || 0);
+                  }, 0);
 
-      <Row>
-        <Col md="12">
-          <Card>
-            <CardHeader className="d-flex justify-content-between align-items-center">
-              <CardTitle tag="h4">Análise de Performance em Treino</CardTitle>
-              <TimerDisplay timerInicio={timerInicio} />
-              <div className="d-flex gap-2">
-                <Button
-                  size="sm"
-                  color="secondary"
-                  onClick={cancelarTreino}
-                  hidden={showCancelButton}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  color="danger"
-                  onClick={finalizarTreino}
-                  hidden={showEndButton}
-                >
-                  Finalizar
-                </Button>
-                <Button
-                  size="sm"
-                  color="success"
-                  onClick={handleStartTreino}
-                  hidden={showStartButton}
-                >
-                  Iniciar
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
-        </Col>
-      </Row>
+                return (
+                  <Card className="execution-athlete-card" key={index}>
+                    <CardBody>
+                      <div className="execution-athlete-header">
+                        <h4 className="execution-athlete-name">{atleta}</h4>
+                        <span className="execution-athlete-badge">
+                          {totalAtleta} execução(ões) registradas
+                        </span>
+                      </div>
 
-      <Row>
-        <Col md="12">
-          <Card>
-            <CardBody>
-              <Table responsive>
-                <thead className="text-primary">
-                  <tr>
-                    <th>Nome Atleta</th>
-                    {fundamentos
-                      .filter((f) => filtroFundamento.includes(f))
-                      .map((fundamento, idx) => (
-                        <th key={idx}>{fundamento}</th>
-                      ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {atletas
-                    .filter((a) => filtroAtleta.includes(a))
-                    .map((atleta, index) => (
-                      <tr key={index}>
-                        <td>{atleta}</td>
+                      <div className="execution-fundamentos-grid">
                         {fundamentos
                           .filter((f) => filtroFundamento.includes(f))
                           .map((fundamento, idx) => {
@@ -488,98 +546,103 @@ function DashAtleta() {
                               avaliacoes[atleta]?.[fundamento]?.length || 0;
 
                             return (
-                              <td key={`${index}-${idx}`}>
+                              <div
+                                className="execution-fundamento-card"
+                                key={`${index}-${idx}`}
+                              >
+                                <div className="execution-fundamento-top">
+                                  <h5 className="execution-fundamento-title">
+                                    {fundamento}
+                                  </h5>
+                                  <span className="execution-fundamento-total">
+                                    Total: {total}
+                                  </span>
+                                </div>
+
                                 <NivelBotaoSet
                                   atleta={atleta}
                                   fundamento={fundamento}
                                   cor={cores[idx]}
                                   onClick={registrarJogada}
                                 />
-                                <div className="d-flex justify-content-between align-items-center mt-1 gap-1">
-                                  <small className="text-muted">
-                                    Total: {total}
-                                  </small>
+
+                                <div className="execution-fundamento-actions">
                                   <Button
                                     size="sm"
                                     color="danger"
                                     outline
                                     disabled={total === 0}
-                                    onClick={() =>
-                                      desfazerUltima(atleta, fundamento)
-                                    }
+                                    onClick={() => desfazerUltima(atleta, fundamento)}
+                                    className="execution-mini-btn"
                                   >
                                     Desfazer
                                   </Button>
+
                                   <Button
                                     size="sm"
                                     color="secondary"
                                     outline
                                     disabled={total === 0}
-                                    onClick={() =>
-                                      limparFundamento(atleta, fundamento)
-                                    }
+                                    onClick={() => limparFundamento(atleta, fundamento)}
+                                    className="execution-mini-btn"
                                   >
                                     Limpar
                                   </Button>
                                 </div>
-                              </td>
+                              </div>
                             );
                           })}
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+                      </div>
+                    </CardBody>
+                  </Card>
+                );
+              })}
+          </div>
+        )}
 
-      <Row>
-        <Col md="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h5">Jogadas por Fundamento</CardTitle>
-              <p className="card-category">Distribuição Total Registrada</p>
-            </CardHeader>
-            <CardBody style={{ height: "300px", position: "relative" }}>
-              <Pie
-                data={{
-                  labels: fundamentos,
-                  datasets: [
-                    {
-                      data: totaisFundamento,
-                      backgroundColor: [
-                        "#4e73df",
-                        "#1cc88a",
-                        "#36b9cc",
-                        "#f6c23e",
-                        "#e74a3b",
-                        "#858796",
-                      ],
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { position: "bottom" },
+        <Card className="execution-chart-card">
+          <CardHeader>
+            <CardTitle tag="h5">Jogadas por Fundamento</CardTitle>
+            <p className="card-category">Distribuição total registrada</p>
+          </CardHeader>
+          <CardBody style={{ height: "320px", position: "relative" }}>
+            <Pie
+              data={{
+                labels: fundamentos,
+                datasets: [
+                  {
+                    data: totaisFundamento,
+                    backgroundColor: [
+                      "#4e73df",
+                      "#1cc88a",
+                      "#36b9cc",
+                      "#f6c23e",
+                      "#e74a3b",
+                      "#858796",
+                    ],
                   },
-                }}
-              />
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: "bottom" },
+                },
+              }}
+            />
+          </CardBody>
+        </Card>
 
-      <GraficoPorFundamento
-        fundamentos={fundamentos}
-        filtroFundamento={filtroFundamento} // Importante para o cálculo interno
-        atletas={atletas}
-        filtroAtleta={filtroAtleta}
-        avaliacoes={avaliacoes}
-        niveis={niveis}
-      />
+        <GraficoPorFundamento
+          fundamentos={fundamentos}
+          filtroFundamento={filtroFundamento}
+          atletas={atletas}
+          filtroAtleta={filtroAtleta}
+          avaliacoes={avaliacoes}
+          niveis={niveis}
+        />
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Nav } from "reactstrap";
 import ClubeService from "../../services/ClubeService";
 import PerfectScrollbar from "perfect-scrollbar";
 
-var ps;
+let ps;
 
 function Sidebar(props) {
   const sidebar = React.useRef();
@@ -12,104 +12,98 @@ function Sidebar(props) {
   const clubeService = new ClubeService();
   const history = useHistory();
 
-  // verifies if routeName is the one active (in browser input)
-  const activeRoute = (routeName) => {
-    return props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
-  };
+  const activeRoute = (routeName) =>
+    props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
 
   React.useEffect(() => {
-    if (navigator.platform.indexOf("Win") > -1) {
+    if (navigator.platform.indexOf("Win") > -1 && sidebar.current) {
       ps = new PerfectScrollbar(sidebar.current, {
         suppressScrollX: true,
-        suppressScrollY: false
+        suppressScrollY: false,
       });
     }
-    return function cleanup() {
-      if (navigator.platform.indexOf("Win") > -1) {
-        ps.destroy();
-      }
+
+    return () => {
+      if (ps) ps.destroy();
     };
-  });
+  }, []);
 
   React.useEffect(() => {
     const clubeId = localStorage.getItem("clubeId");
 
     if (clubeId) {
-      clubeService.findById(clubeId)
-        .then((res) => {
-          console.log("Clube encontrado:", res);
-          setClube(res);
-        })
-        .catch((err) => {
-          console.error("Erro ao buscar clube:", err);
-        });
+      clubeService
+        .findById(clubeId)
+        .then((res) => setClube(res))
+        .catch((err) => console.error("Erro ao buscar clube:", err));
     }
   }, []);
 
-  // Função de logout
   const handleLogout = () => {
     localStorage.removeItem("userId");
     localStorage.removeItem("clubeId");
     localStorage.removeItem("nome");
     localStorage.removeItem("tipo");
-    
-    console.log("Logout realizado, redirecionando para login...");
     history.push("/login");
   };
 
+  const isOpen = props.isOpen;
+  const nomeClube = clube?.nome || "Carregando...";
+  const brandMini = "IP";
+
   return (
     <div
-      className="sidebar"
+      className={`sidebar ${isOpen ? "sidebar-open" : "sidebar-mini"}`}
       data-color={props.bgColor}
       data-active-color={props.activeColor}
     >
       <div className="logo">
-        <a
-          href="/admin"
-          className="simple-text logo-normal"
-        >
-          In-Set PRO 
-        </a>
-        <a
-          href="/admin"
-          className="simple-text logo-normal-clube-nome">
-          {clube.nome}
-        </a>
+        <div className="sidebar-brand-wrap">
+          {isOpen ? (
+            <div className="sidebar-brand-full">
+              <span className="sidebar-brand-title">In-Set PRO</span>
+              <small className="sidebar-brand-club">{nomeClube}</small>
+            </div>
+          ) : (
+            <div className="sidebar-brand-mini" title="In-Set PRO">
+              {brandMini}
+            </div>
+          )}
+        </div>
       </div>
+
       <div className="sidebar-wrapper" ref={sidebar}>
-        <Nav>
-          {props.routes.map((prop, key) => {
-            return (
-              <li
-                className={
-                  activeRoute(prop.path) + (prop.pro ? " active-pro" : "")
-                }
-                key={key}
+        <Nav className="flex-column">
+          {props.routes.map((prop, key) => (
+            <li className={`nav-item ${activeRoute(prop.path)}`} key={key}>
+              <NavLink
+                to={prop.layout + prop.path}
+                className="nav-link d-flex align-items-center"
+                activeClassName="active"
+                title={!isOpen ? prop.name : ""}
               >
-                <NavLink
-                  to={prop.layout + prop.path}
-                  className="nav-link"
-                  activeClassName="active"
-                >
-                  <i className={prop.icon} />
-                  <p>{prop.name}</p>
-                </NavLink>
-              </li>
-            );
-          })}
-          
-          {/* Botão de Logout */}
-          <li className="logout-item">
+                <i className={prop.icon} />
+                {isOpen && <span>{prop.name}</span>}
+              </NavLink>
+            </li>
+          ))}
+
+          <div className="sidebar-section-label">
+            {isOpen && <small>Conta</small>}
+          </div>
+
+          <li className="nav-item">
             <a
-              href="#"
-              className="nav-link"
+              href="/"
+              className="nav-link text-danger d-flex align-items-center"
               onClick={(e) => {
                 e.preventDefault();
                 handleLogout();
               }}
+              title={!isOpen ? "Sair" : ""}
             >
               <i className="nc-icon nc-button-power" />
-              <p>Sair</p>
+              {isOpen && <span>Sair</span>}
             </a>
           </li>
         </Nav>
