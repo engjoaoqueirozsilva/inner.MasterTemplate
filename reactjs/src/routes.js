@@ -3,6 +3,7 @@ import Atleta from "views/DashAtleta.js";
 import Equipe from "views/Equipe";
 import Treino from "views/Treino.js";
 import Performance from "views/Performance.js";
+import AcoesDeJogo from "views/AcoesDeJogo.js";
 
 
 var routes = [
@@ -39,6 +40,13 @@ var routes = [
     name: "Performance",
     icon: "nc-icon nc-align-center",
     component: Performance,
+    layout: "/admin"
+  },
+   {
+    path: "/AcoesdeJogo",
+    name: "Ações de Jogo",
+    icon: "nc-icon nc-vector",
+    component: AcoesDeJogo,
     layout: "/admin"
   }
 ];

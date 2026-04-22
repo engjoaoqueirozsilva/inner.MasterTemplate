@@ -11,6 +11,8 @@ function Sidebar(props) {
   const [clube, setClube] = React.useState({});
   const clubeService = new ClubeService();
   const history = useHistory();
+  const [legalOpen, setLegalOpen] = React.useState(false);
+  const [userOpen, setUserOpen] = React.useState(false);
 
   const activeRoute = (routeName) =>
     props.location.pathname.indexOf(routeName) > -1 ? "active" : "";
@@ -72,7 +74,8 @@ function Sidebar(props) {
         </div>
       </div>
 
-      <div className="sidebar-wrapper" ref={sidebar}>
+      <div className="sidebar-wrapper d-flex flex-column" ref={sidebar}>
+        {/* MENU PRINCIPAL */}
         <Nav className="flex-column">
           {props.routes.map((prop, key) => (
             <li className={`nav-item ${activeRoute(prop.path)}`} key={key}>
@@ -87,13 +90,110 @@ function Sidebar(props) {
               </NavLink>
             </li>
           ))}
+        </Nav>
 
-          <div className="sidebar-section-label">
-            {isOpen && <small>Conta</small>}
-          </div>
+        {/* ESPAÇADOR PARA EMPURRAR O RODAPÉ */}
+        <div style={{ flex: 1 }} />
 
+
+
+        {/* SEÇÃO LEGAL */}
+        {/* <div className="sidebar-section-label mt-3">
+          {isOpen && <small>Legal</small>}
+        </div> */}
+
+        <Nav className="flex-column mb-2">
+          {/* BOTÃO DO DROPDOWN */}
           <li className="nav-item">
             <a
+              href="/"
+              className="nav-link d-flex align-items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                if (isOpen) setLegalOpen(!legalOpen);
+              }}
+              title={!isOpen ? "LGPD" : ""}
+            >
+              <i className="nc-icon nc-paper" />
+              {isOpen && (
+                <>
+                  <span>LGPD</span>
+                  <i
+                    className="nc-icon nc-minimal-down"
+                    style={{
+                      marginLeft: "auto",
+                      transform: legalOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "0.2s",
+                    }}
+                  />
+                </>
+              )}
+            </a>
+          </li>
+
+          {/* LINKS INTERNOS */}
+          {isOpen && legalOpen && (
+            <>
+              <li className="nav-item">
+                <a
+                  href="/html/termos-de-uso.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link d-flex align-items-center sidebar-subitem"
+                >
+                  <i className="nc-icon nc-single-copy-04" />
+                  <span>Termos de Uso</span>
+                </a>
+              </li>
+
+              <li className="nav-item">
+                <a
+                  href="/html/politica-de-privacidade.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link d-flex align-items-center sidebar-subitem"
+                >
+                  <i className="nc-icon nc-lock-circle-open" />
+                  <span>Privacidade</span>
+                </a>
+              </li>
+            </>
+          )}
+        </Nav>
+                <Nav className="flex-column mb-2">
+          {/* BOTÃO DO DROPDOWN */}
+          <li className="nav-item">
+            <a
+              href="/"
+              className="nav-link d-flex align-items-center"
+              onClick={(e) => {
+                e.preventDefault();
+                if (isOpen) setUserOpen(!userOpen);
+              }}
+              title={!isOpen ? "LGPD" : ""}
+            >
+              <i className="nc-icon nc-button-power" />
+              {isOpen && (
+                <>
+                  <span>Conta</span>
+                  <i
+                    className="nc-icon nc-minimal-down"
+                    style={{
+                      marginLeft: "auto",
+                      transform: legalOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "0.2s",
+                    }}
+                  />
+                </>
+              )}
+            </a>
+          </li>
+
+          {/* LINKS INTERNOS */}
+          {isOpen && userOpen && (
+            <>
+              <li className="nav-item">
+                <a
               href="/"
               className="nav-link text-danger d-flex align-items-center"
               onClick={(e) => {
@@ -102,10 +202,12 @@ function Sidebar(props) {
               }}
               title={!isOpen ? "Sair" : ""}
             >
-              <i className="nc-icon nc-button-power" />
+              <i className="nc-icon nc-people" />
               {isOpen && <span>Sair</span>}
-            </a>
-          </li>
+            </a> 
+              </li>
+            </>
+          )}
         </Nav>
       </div>
     </div>
