@@ -2024,3 +2024,162 @@ p, label, span, small, td, th, input, button {
 .game-actions-page.is-focus-mode .game-actions-stage {
   margin: 0 auto;
 }
+/* ==========================================
+   LOUSA TÁTICA
+========================================== */
+
+.game-actions-history-item {
+  cursor: pointer;
+}
+
+.game-actions-history-item:hover {
+  background: #f8fbfd !important;
+}
+
+.game-actions-history-item.is-active {
+  background: rgba(81, 203, 206, 0.08) !important;
+  border-color: rgba(81, 203, 206, 0.28) !important;
+}
+
+.game-actions-history-name {
+  font-weight: 700;
+  color: #172033;
+}
+
+.game-actions-history-meta {
+  color: #7b8794;
+  font-size: 0.82rem;
+}
+/* ==========================================
+   PLAYBOOK
+========================================== */
+
+.playbook-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.playbook-hero-card,
+.playbook-filter-card,
+.playbook-list-card {
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06) !important;
+  overflow: hidden;
+}
+
+.playbook-hero-card .card-body,
+.playbook-filter-card .card-body,
+.playbook-list-card .card-body {
+  padding: 24px !important;
+}
+
+.playbook-hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbfd 100%);
+}
+
+.playbook-page-title {
+  margin: 0;
+  color: #172033;
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.playbook-page-subtitle {
+  margin: 8px 0 0;
+  color: #7b8794;
+  font-size: 0.96rem;
+  max-width: 760px;
+}
+
+.playbook-accordion-item + .playbook-accordion-item {
+  margin-top: 14px;
+}
+
+.playbook-accordion-header {
+  width: 100%;
+  border: 1px solid #e8edf2;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.playbook-accordion-header:hover {
+  background: #f8fbfd;
+}
+
+.playbook-accordion-header.is-open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-color: rgba(81, 203, 206, 0.22);
+}
+
+.playbook-accordion-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #172033;
+}
+
+.playbook-accordion-meta {
+  margin-top: 4px;
+  font-size: 0.86rem;
+  color: #7b8794;
+}
+
+.playbook-accordion-icon {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #39b9c7;
+  line-height: 1;
+}
+
+.playbook-accordion-body {
+  border: 1px solid rgba(81, 203, 206, 0.22);
+  border-top: none;
+  background: #ffffff;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  padding: 20px;
+}
+
+.playbook-detail-block {
+  border: 1px solid #eef2f6;
+  background: #f8fbfd;
+  border-radius: 16px;
+  padding: 16px;
+  height: 100%;
+}
+
+.playbook-detail-title {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #172033;
+}
+
+.playbook-detail-block p {
+  margin-bottom: 10px;
+  color: #5b6472;
+  font-size: 0.92rem;
+}
+
+.playbook-canvas-box {
+  width: 100%;
+  overflow: auto;
+  border-radius: 16px;
+  border: 1px solid #e8edf2;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.playbook-stage {
+  display: block;
+  margin: 0 auto;
+}

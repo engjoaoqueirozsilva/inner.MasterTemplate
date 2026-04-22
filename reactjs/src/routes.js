@@ -4,6 +4,8 @@ import Equipe from "views/Equipe";
 import Treino from "views/Treino.js";
 import Performance from "views/Performance.js";
 import AcoesDeJogo from "views/AcoesDeJogo.js";
+import LousaTatica from "views/LousaTatica";
+import Playbook from "views/Playbook";
 
 
 var routes = [
@@ -47,6 +49,20 @@ var routes = [
     name: "Ações de Jogo",
     icon: "nc-icon nc-vector",
     component: AcoesDeJogo,
+    layout: "/admin"
+  },
+   {
+    path: "/Lousa",
+    name: "Lousa Tática",
+    icon: "nc-icon nc-ruler-pencil",
+    component: LousaTatica,
+    layout: "/admin"
+  },
+   {
+    path: "/Playbook",
+    name: "Playbook",
+    icon: "nc-icon nc-single-copy-04",
+    component: Playbook,
     layout: "/admin"
   }
 ];
