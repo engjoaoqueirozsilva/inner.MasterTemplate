@@ -170,7 +170,7 @@ function Sidebar(props) {
                 e.preventDefault();
                 if (isOpen) setUserOpen(!userOpen);
               }}
-              title={!isOpen ? "LGPD" : ""}
+              title={!isOpen ? "Conta" : ""}
             >
               <i className="nc-icon nc-button-power" />
               {isOpen && (
